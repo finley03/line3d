@@ -1,9 +1,11 @@
 # line3d
 Simple web based 3d engine I'm working on for fun.
+
 Displays objects as wireframe (currently)
 
 
 Right now it's incredibly basic and more of a demo so likely not much point trying to adapt it to do anything meaningful.
+
 start date 07/10/2020 (d/m/y)
 
 any suggestions would be appreciated
@@ -15,15 +17,26 @@ You can also add objects to display. Put 3d coordinates (somewhere around 1 if y
 
 Current Features:
 
+
 rotate an object on all 3 axes
+
 perspective shift
+
 that's it for now
+
+
 
 Coming (probably):
 
+
 hide/fade lines on back side of object
+
 shaded polygons
+
 translation
+
 dynamic viewpoints
+
 multiple objects
+
 + more if I have the time
