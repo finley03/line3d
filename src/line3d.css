@@ -10,7 +10,14 @@ body {
     background-color: #242424;
 }
 
+#buttons {
+    position: absolute;
+    bottom: 15px;
+    right: 15px;
+}
+
 #object {
+    position: absolute;
     margin: 0;
     padding: 0;
     background-color: #242424;

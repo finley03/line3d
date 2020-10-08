@@ -1,15 +1,61 @@
-// objects
+class Objects {
+    constructor() {
+        this.originalShapes = {
+            // read-only
+            get getShapes() {
+                return {
+                    cube: {
+                        points:[[1,1,1],[1,1,-1],[-1,1,1],[-1,1,-1],[1,-1,1],[1,-1,-1],[-1,-1,1],[-1,-1,-1]],
+                        instructions:[[0,1],[1,3],[3,2],[2,0],[4,5],[5,7],[7,6],[6,4],[0,4],[2,6],[1,5],[3,7]]
+                    },
+                    pyramid: {
+                        points:[[1,1,-0.6],[1,-1,-0.6],[-1,-1,-0.6],[-1,1,-0.6],[0,0,0.8]],
+                        instructions:[[0,1],[1,2],[2,3],[3,0],[0,4],[1,4],[2,4],[3,4]]
+                    },
+                    line: {
+                        points:[[1,1,0],[-1,-1,0]],
+                        instructions:[[1,0]]
+                    }
+                }
+            }
+        }
+        this.shapes = this.originalShapes.getShapes;
 
-let cube = {points:[[1,1,1],[1,1,-1],[-1,1,1],[-1,1,-1],[1,-1,1],[1,-1,-1],[-1,-1,1],[-1,-1,-1]],
-    instructions:[[0,1],[1,3],[3,2],[2,0],[4,5],[5,7],[7,6],[6,4],[0,4],[2,6],[1,5],[3,7]]};
+        this.scaleAllShapes();
+    }
 
-let pyramid = {points:[[1,1,-0.6],[1,-1,-0.6],[-1,-1,-0.6],[-1,1,-0.6],[0,0,0.8]],
-    instructions:[[0,1],[1,2],[2,3],[3,0],[0,4],[1,4],[2,4],[3,4]]};
+    // not used currently - here in case it is needed
+    scaleShape(shape) {
+        this.scale = Math.min(window.innerWidth, window.innerHeight) * 0.25;
 
-let line = {points:[[1,1,0],[-1,-1,0]],
-    instructions:[[1,0]]}
+        for (let s = 0; s < (this.shapes[shape]["points"]).length; s++) {
+            for (let t = 0; t < (this.shapes[shape]["points"][0]).length; t++) {
+                this.shapes[shape]["points"][s][t] *= this.scale;
+            }
+        }
+    }
 
+    scaleAllShapes() {
+        this.scale = Math.min(window.innerWidth, window.innerHeight) * 0.25;
 
+        for (let shape in this.shapes) {
+            for (let s = 0; s < (this.shapes[shape]["points"]).length; s++) {
+                for (let t = 0; t < (this.shapes[shape]["points"][0]).length; t++) {
+                    this.shapes[shape]["points"][s][t] *= this.scale;
+                }
+            }
+        }
+    }
+
+    updateScale() {
+        // reset the scale
+        this.shapes = this.originalShapes.getShapes;
+        // and update it again
+        this.scaleAllShapes();
+    }
+}
+
+objects = new Objects();
 
 // define variables and constants
 
@@ -20,8 +66,9 @@ let zTheta=312;
 let xRotateSpeed = 0.043;  // degrees per frame
 let yRotateSpeed = 0.157;
 let zRotateSpeed = 0.75;
-let object = cube.points
-let objectInstructions = cube.instructions
+let currentObject = "cube";
+let object = objects.shapes[currentObject].points;
+let objectInstructions = objects.shapes[currentObject].instructions;
 let xMatrix = [[],[],[]]
 let yMatrix = [[],[],[]]
 let zMatrix = [[],[],[]]
@@ -29,21 +76,29 @@ let intermediateMatrix = [[],[],[]];
 let compoundMatrix = [[],[],[]];
 let transformedObject = new Array(object.length); for (let n=0; n<transformedObject.length; n++) { transformedObject[n] = new Array(3); }
 let perspectiveObject = new Array(object.length); for (let n=0; n<perspectiveObject.length; n++) { perspectiveObject[n] = new Array(3); }
+let rotate = true;
 
-// scale object
+// setup canvas
+let canvas = document.getElementById("object");
+let ctx = canvas.getContext("2d");
+setupCanvas(canvas, ctx);
 
-let scale = Math.min(window.innerWidth, window.innerHeight) * 0.25;
-for (let s=0; s<object.length; s++) {for (let t=0; t<object[0].length; t++) {
-    object[s][t] = object[s][t] * scale;
-}}
+function setupCanvas(canvas, ctx) {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
 
-// setup canvas context
+    ctx.beginPath();
+    ctx.strokeStyle = "#aaaaaa";
+}
 
-var c = document.getElementById("object");
-var ctx = c.getContext("2d");
-ctx.beginPath();
-ctx.strokeStyle = "#aaaaaa";
+// when the window is resized, update the size of the canvas, and update the scale of the object
+window.addEventListener("resize", function() {
+    objects.updateScale();
+    object = objects.shapes[currentObject].points;
+    objectInstructions = objects.shapes[currentObject].instructions;
 
+    setupCanvas(canvas, ctx);
+})
 
 // run transformation routine
 
@@ -80,7 +135,7 @@ function drawLoop() {
         // apply perspective shift
 
         for (let p=0; p<transformedObject.length; p++) {
-            multiplier = 1 + (transformedObject[p][0] / (scale * 8))
+            multiplier = 1 + (transformedObject[p][0] / (objects.scale * 8))
             perspectiveObject[p] = [transformedObject[p][1]*multiplier,transformedObject[p][2]*multiplier]
         }
 
@@ -97,16 +152,25 @@ function drawLoop() {
 
         ctx.stroke();
 
-        xTheta += xRotateSpeed;
-        if (xTheta >= 360) { xTheta -= 360; }
-        if (xTheta < 0) { xTheta += 360; }
-        yTheta += yRotateSpeed;
-        if (yTheta >= 360) { xTheta -= 360; }
-        if (yTheta < 0) { xTheta = xTheta += 360; }
-        zTheta += zRotateSpeed;
-        if (zTheta >= 360) { zTheta -= 360; }
-        if (zTheta < 0) { zTheta += 360; }
+        if (rotate) {
+            xTheta += xRotateSpeed;
+            if (xTheta >= 360) { xTheta -= 360; }
+            if (xTheta < 0) { xTheta += 360; }
+            yTheta += yRotateSpeed;
+            if (yTheta >= 360) { xTheta -= 360; }
+            if (yTheta < 0) { xTheta = xTheta += 360; }
+            zTheta += zRotateSpeed;
+            if (zTheta >= 360) { zTheta -= 360; }
+            if (zTheta < 0) { zTheta += 360; }
+        }
  
         drawLoop()
     }, (1000/frameRate));
+}
+
+// runs when button pressed
+function setObjectType(type) {
+    currentObject = type;
+    object = objects.shapes[type].points;
+    objectInstructions = objects.shapes[type].instructions;
 }
