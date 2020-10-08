@@ -76,7 +76,6 @@ let intermediateMatrix = [[],[],[]];
 let compoundMatrix = [[],[],[]];
 let transformedObject = new Array(object.length); for (let n=0; n<transformedObject.length; n++) { transformedObject[n] = new Array(3); }
 let perspectiveObject = new Array(object.length); for (let n=0; n<perspectiveObject.length; n++) { perspectiveObject[n] = new Array(3); }
-let rotate = true;
 
 // setup canvas
 let canvas = document.getElementById("object");
@@ -152,17 +151,15 @@ function drawLoop() {
 
         ctx.stroke();
 
-        if (rotate) {
-            xTheta += xRotateSpeed;
-            if (xTheta >= 360) { xTheta -= 360; }
-            if (xTheta < 0) { xTheta += 360; }
-            yTheta += yRotateSpeed;
-            if (yTheta >= 360) { xTheta -= 360; }
-            if (yTheta < 0) { xTheta = xTheta += 360; }
-            zTheta += zRotateSpeed;
-            if (zTheta >= 360) { zTheta -= 360; }
-            if (zTheta < 0) { zTheta += 360; }
-        }
+        xTheta += xRotateSpeed;
+        if (xTheta >= 360) { xTheta -= 360; }
+        if (xTheta < 0) { xTheta += 360; }
+        yTheta += yRotateSpeed;
+        if (yTheta >= 360) { xTheta -= 360; }
+        if (yTheta < 0) { xTheta = xTheta += 360; }
+        zTheta += zRotateSpeed;
+        if (zTheta >= 360) { zTheta -= 360; }
+        if (zTheta < 0) { zTheta += 360; }
  
         drawLoop()
     }, (1000/frameRate));
