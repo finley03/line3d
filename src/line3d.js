@@ -2,24 +2,27 @@
 
 class Objects {
     constructor() {
-        this.shapes = {
-            Cube: {
-                points:[[1,1,1],[1,1,-1],[-1,1,1],[-1,1,-1],[1,-1,1],[1,-1,-1],[-1,-1,1],[-1,-1,-1]],
-                instructions:[[0,1],[1,3],[3,2],[2,0],[4,5],[5,7],[7,6],[6,4],[0,4],[2,6],[1,5],[3,7]]
-            },
-            Pyramid: {
-                points:[[1,1,-0.6],[1,-1,-0.6],[-1,-1,-0.6],[-1,1,-0.6],[0,0,0.8]],
-                instructions:[[0,1],[1,2],[2,3],[3,0],[0,4],[1,4],[2,4],[3,4]]
-            },
-            Line: {
-                points:[[1,1,0],[-1,-1,0]],
-                instructions:[[1,0]]
-            },
+        this.originalShapes = {
+            get getShapes() {
+                return {
+                    Cube: {
+                        points:[[1,1,1],[1,1,-1],[-1,1,1],[-1,1,-1],[1,-1,1],[1,-1,-1],[-1,-1,1],[-1,-1,-1]],
+                        instructions:[[0,1],[1,3],[3,2],[2,0],[4,5],[5,7],[7,6],[6,4],[0,4],[2,6],[1,5],[3,7]]
+                    },
+                    Pyramid: {
+                        points:[[1,1,-0.6],[1,-1,-0.6],[-1,-1,-0.6],[-1,1,-0.6],[0,0,0.8]],
+                        instructions:[[0,1],[1,2],[2,3],[3,0],[0,4],[1,4],[2,4],[3,4]]
+                    },
+                    Line: {
+                        points:[[1,1,0],[-1,-1,0]],
+                        instructions:[[1,0]]
+                    },
+                }
+            }
         }
 
+        this.setScale();
         this.createButtons();
-        this.scaleObjects();
-
     }
 
     // scale objects to fit window
@@ -40,14 +43,21 @@ class Objects {
 
     createButtons() {
         for (let shape in this.shapes) {
-            var button = document.createElement("button");
+            let button = document.createElement("button");
             button.type = "button";
             button.innerHTML = shape;
             button.id = "button";
             button.setAttribute("onclick", 'setObjectType("'+shape+'")')
-            var element = document.getElementById("buttons");
+            let element = document.getElementById("buttons");
             element.appendChild(button);
         }
+    }
+
+    // configures object from window size
+
+    setScale() {
+        this.shapes = this.originalShapes.getShapes;
+        this.scaleObjects();
     }
 }
 
@@ -55,16 +65,16 @@ objects = new Objects();
 
 // define variables and constants
 
-let defaultObject = 'Cube'
+let displayObject = 'Cube'
 let frameRate = 60;
-let xTheta = 0;
+let xTheta = 0; // starting position in degrees
 let yTheta = 0;
 let zTheta = 0;
 let xRotateSpeed = 0.043;  // degrees per frame
 let yRotateSpeed = 0.157;
 let zRotateSpeed = 0.75;
-let object = objects.shapes[defaultObject].points;
-let objectInstructions = objects.shapes[defaultObject].instructions;
+let object = objects.shapes[displayObject].points;
+let objectInstructions = objects.shapes[displayObject].instructions;
 let xMatrix = [[],[],[]]
 let yMatrix = [[],[],[]]
 let zMatrix = [[],[],[]]
@@ -75,10 +85,30 @@ let perspectiveObject = new Array(object.length); for (let n=0; n<perspectiveObj
 
 // setup canvas context
 
-var c = document.getElementById("object");
-var ctx = c.getContext("2d");
-ctx.beginPath();
-ctx.strokeStyle = "#aaaaaa";
+let canvas = document.getElementById("object");
+let ctx = canvas.getContext("2d");
+
+// setup canvas properties
+
+function setCanvas() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    ctx.beginPath();
+    ctx.strokeStyle = "#aaaaaa";
+}
+
+// add window resize listener
+
+window.addEventListener("resize", function() {
+    setCanvas();
+    objects.setScale();
+    object = objects.shapes[displayObject].points;
+    objectInstructions = objects.shapes[displayObject].instructions;
+})
+
+
+
+setCanvas();
 
 // run transformation routine
 
@@ -147,7 +177,9 @@ function drawLoop() {
 }
 
 // runs when button pressed
+
 function setObjectType(type) {
+    displayObject = type;
     object = objects.shapes[type].points;
     objectInstructions = objects.shapes[type].instructions;
 }
