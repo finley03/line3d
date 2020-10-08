@@ -1,27 +1,70 @@
 // objects
 
-let cube = {points:[[1,1,1],[1,1,-1],[-1,1,1],[-1,1,-1],[1,-1,1],[1,-1,-1],[-1,-1,1],[-1,-1,-1]],
-    instructions:[[0,1],[1,3],[3,2],[2,0],[4,5],[5,7],[7,6],[6,4],[0,4],[2,6],[1,5],[3,7]]};
+class Objects {
+    constructor() {
+        this.shapes = {
+            Cube: {
+                points:[[1,1,1],[1,1,-1],[-1,1,1],[-1,1,-1],[1,-1,1],[1,-1,-1],[-1,-1,1],[-1,-1,-1]],
+                instructions:[[0,1],[1,3],[3,2],[2,0],[4,5],[5,7],[7,6],[6,4],[0,4],[2,6],[1,5],[3,7]]
+            },
+            Pyramid: {
+                points:[[1,1,-0.6],[1,-1,-0.6],[-1,-1,-0.6],[-1,1,-0.6],[0,0,0.8]],
+                instructions:[[0,1],[1,2],[2,3],[3,0],[0,4],[1,4],[2,4],[3,4]]
+            },
+            Line: {
+                points:[[1,1,0],[-1,-1,0]],
+                instructions:[[1,0]]
+            },
+        }
 
-let pyramid = {points:[[1,1,-0.6],[1,-1,-0.6],[-1,-1,-0.6],[-1,1,-0.6],[0,0,0.8]],
-    instructions:[[0,1],[1,2],[2,3],[3,0],[0,4],[1,4],[2,4],[3,4]]};
+        this.createButtons();
+        this.scaleObjects();
 
-let line = {points:[[1,1,0],[-1,-1,0]],
-    instructions:[[1,0]]}
+    }
 
+    // scale objects to fit window
 
+    scaleObjects() {
+        this.scale = Math.min(window.innerWidth, window.innerHeight) * 0.25;
+
+        for (let shape in this.shapes) {
+            for (let s = 0; s < (this.shapes[shape]["points"]).length; s++) {
+                for (let t = 0; t < (this.shapes[shape]["points"][0]).length; t++) {
+                    this.shapes[shape]["points"][s][t] *= this.scale;
+                }
+            }
+        }
+    }
+
+    // create buttons based on objects in class
+
+    createButtons() {
+        for (let shape in this.shapes) {
+            var button = document.createElement("button");
+            button.type = "button";
+            button.innerHTML = shape;
+            button.id = "button";
+            button.setAttribute("onclick", 'setObjectType("'+shape+'")')
+            var element = document.getElementById("buttons");
+            element.appendChild(button);
+        }
+    }
+}
+
+objects = new Objects();
 
 // define variables and constants
 
+let defaultObject = 'Cube'
 let frameRate = 60;
-let xTheta=135;
-let yTheta=37;
-let zTheta=312;
+let xTheta = 0;
+let yTheta = 0;
+let zTheta = 0;
 let xRotateSpeed = 0.043;  // degrees per frame
 let yRotateSpeed = 0.157;
 let zRotateSpeed = 0.75;
-let object = cube.points
-let objectInstructions = cube.instructions
+let object = objects.shapes[defaultObject].points;
+let objectInstructions = objects.shapes[defaultObject].instructions;
 let xMatrix = [[],[],[]]
 let yMatrix = [[],[],[]]
 let zMatrix = [[],[],[]]
@@ -30,20 +73,12 @@ let compoundMatrix = [[],[],[]];
 let transformedObject = new Array(object.length); for (let n=0; n<transformedObject.length; n++) { transformedObject[n] = new Array(3); }
 let perspectiveObject = new Array(object.length); for (let n=0; n<perspectiveObject.length; n++) { perspectiveObject[n] = new Array(3); }
 
-// scale object
-
-let scale = Math.min(window.innerWidth, window.innerHeight) * 0.25;
-for (let s=0; s<object.length; s++) {for (let t=0; t<object[0].length; t++) {
-    object[s][t] = object[s][t] * scale;
-}}
-
 // setup canvas context
 
 var c = document.getElementById("object");
 var ctx = c.getContext("2d");
 ctx.beginPath();
 ctx.strokeStyle = "#aaaaaa";
-
 
 // run transformation routine
 
@@ -80,7 +115,7 @@ function drawLoop() {
         // apply perspective shift
 
         for (let p=0; p<transformedObject.length; p++) {
-            multiplier = 1 + (transformedObject[p][0] / (scale * 8))
+            multiplier = 1 + (transformedObject[p][0] / (objects.scale * 8))
             perspectiveObject[p] = [transformedObject[p][1]*multiplier,transformedObject[p][2]*multiplier]
         }
 
@@ -109,4 +144,10 @@ function drawLoop() {
  
         drawLoop()
     }, (1000/frameRate));
+}
+
+// runs when button pressed
+function setObjectType(type) {
+    object = objects.shapes[type].points;
+    objectInstructions = objects.shapes[type].instructions;
 }
