@@ -16,6 +16,31 @@ body {
     right: 15px;
 }
 
+#button {
+    background-color: #343434;
+    border: none;
+    color: #aaaaaa;
+    padding: 15px 32px;
+    margin: 2px 4px;
+    border-radius: 2px;
+}
+
+#button:visited {
+    outline: none;
+}
+
+#button:focus {
+    outline: none;
+}
+
+#button:hover {
+    background-color: #404040;
+}
+
+#button:active {
+    background-color: #505050;
+}
+
 #object {
     margin: 0;
     padding: 0;

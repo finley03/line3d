@@ -3,22 +3,26 @@
 class Objects {
     constructor() {
         this.shapes = {
-            cube: {
+            Cube: {
                 points:[[1,1,1],[1,1,-1],[-1,1,1],[-1,1,-1],[1,-1,1],[1,-1,-1],[-1,-1,1],[-1,-1,-1]],
                 instructions:[[0,1],[1,3],[3,2],[2,0],[4,5],[5,7],[7,6],[6,4],[0,4],[2,6],[1,5],[3,7]]
             },
-            pyramid: {
+            Pyramid: {
                 points:[[1,1,-0.6],[1,-1,-0.6],[-1,-1,-0.6],[-1,1,-0.6],[0,0,0.8]],
                 instructions:[[0,1],[1,2],[2,3],[3,0],[0,4],[1,4],[2,4],[3,4]]
             },
-            line: {
+            Line: {
                 points:[[1,1,0],[-1,-1,0]],
                 instructions:[[1,0]]
-            }
+            },
         }
 
+        this.createButtons();
         this.scaleObjects();
+
     }
+
+    // scale objects to fit window
 
     scaleObjects() {
         this.scale = Math.min(window.innerWidth, window.innerHeight) * 0.25;
@@ -31,21 +35,36 @@ class Objects {
             }
         }
     }
+
+    // create buttons based on objects in class
+
+    createButtons() {
+        for (let shape in this.shapes) {
+            var button = document.createElement("button");
+            button.type = "button";
+            button.innerHTML = shape;
+            button.id = "button";
+            button.setAttribute("onclick", 'setObjectType("'+shape+'")')
+            var element = document.getElementById("buttons");
+            element.appendChild(button);
+        }
+    }
 }
 
 objects = new Objects();
 
 // define variables and constants
 
+let defaultObject = 'Cube'
 let frameRate = 60;
-let xTheta=135;
-let yTheta=37;
-let zTheta=312;
+let xTheta = 0;
+let yTheta = 0;
+let zTheta = 0;
 let xRotateSpeed = 0.043;  // degrees per frame
 let yRotateSpeed = 0.157;
 let zRotateSpeed = 0.75;
-let object = objects.shapes["cube"].points;
-let objectInstructions = objects.shapes["cube"].instructions;
+let object = objects.shapes[defaultObject].points;
+let objectInstructions = objects.shapes[defaultObject].instructions;
 let xMatrix = [[],[],[]]
 let yMatrix = [[],[],[]]
 let zMatrix = [[],[],[]]
