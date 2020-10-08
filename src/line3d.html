@@ -1,8 +1,17 @@
-<head>
-<link rel="stylesheet" href="line3d.css">
-</head>
-<body>
-<canvas id='object' width='500' height='500'></canvas>
-<script src=load.js></script>
-<script src='line3d.js'></script>
-</body>
+<!DOCTYPE html>
+<html>
+    <head>
+        <link rel="stylesheet" href="line3d.css">
+    </head>
+    <body>
+        <canvas id='object' width='500' height='500'></canvas>
+        <script src=load.js></script>
+        <script src='line3d.js'></script>
+
+        <div id="buttons">
+            <button id="cubeButton" onclick="setObjectType('cube')" type="button">Cube</button>
+            <button id="pyramidButton" onclick="setObjectType('pyramid')" type="button">Pyramid</button>
+            <button id="lineButton" onclick="setObjectType('line')" type="button">Line</button>
+        </div>
+    </body>
+</html>

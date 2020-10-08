@@ -10,6 +10,12 @@ body {
     background-color: #242424;
 }
 
+#buttons {
+    position: absolute;
+    bottom: 15px;
+    right: 15px;
+}
+
 #object {
     margin: 0;
     padding: 0;
