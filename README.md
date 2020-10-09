@@ -26,6 +26,7 @@ You can also add objects to display. Put 3d coordinates (somewhere around 1 if y
 * dynamic viewpoints
 * multiple objects
 * animation features
+* .obj file support
 
 more if I have the time
 
