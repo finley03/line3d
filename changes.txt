@@ -1,4 +1,4 @@
 Initial repo created (07/10/2020)
 Merged pull request from HarriXS that added buttons to switch between objects (with heavy modification) (08/10/2020)
 Merged pull request from HarriXS that added dynamic window resizing support (with light modification) (08/10/2020)
-Merged pull request from electroplankton that added minor features and reworked some code (with light modification) (08/10/2020)
+Merged pull request from electroplankton that added minor features and reworked some code (with light modification) (09/10/2020)
