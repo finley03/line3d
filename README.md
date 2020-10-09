@@ -15,11 +15,10 @@ You can also add objects to display. Put 3d coordinates (somewhere around 1 if y
 
 ### Current Features:
 * rotate an object on all 3 axes
-* perspective
+* accurate perspective
 * that's it for now
 
 ### Coming (probably):
-* accurate perspective
 * hide/fade lines on back side of object
 * shaded polygons
 * translation
@@ -30,4 +29,4 @@ You can also add objects to display. Put 3d coordinates (somewhere around 1 if y
 
 more if I have the time
 
-Version 0.4.1
+Version 0.5

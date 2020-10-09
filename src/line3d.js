@@ -1,4 +1,4 @@
-let build = "0.4";
+let build = "0.4.1";
 document.getElementById("title").innerHTML = "line3d " + build;
 
 
@@ -79,6 +79,8 @@ objects = new Objects();
 
 let displayObject = 'cube'
 let frameRate = 60;
+let cameraPosition = [7,0,0]
+let planePosition = [-7,0,0]
 let xTheta = 0; // starting position in degrees
 let yTheta = 0;
 let zTheta = 0;
@@ -94,6 +96,7 @@ let intermediateMatrix = [[],[],[]];
 let compoundMatrix = [[],[],[]];
 let transformedObject = new Array(object.length); for (let n=0; n<transformedObject.length; n++) { transformedObject[n] = new Array(3); }
 let perspectiveObject = new Array(object.length); for (let n=0; n<perspectiveObject.length; n++) { perspectiveObject[n] = new Array(3); }
+let csysPerspectiveObject = new Array(object.length); for (let n=0; n<perspectiveObject.length; n++) { perspectiveObject[n] = new Array(3); }
 
 // setup canvas context
 
@@ -154,12 +157,22 @@ function drawLoop() {
             }
         }
 
+        // old perspective code (for reference)
+
+        // for (let p=0; p<transformedObject.length; p++) {
+        //     multiplier = 1 + (transformedObject[p][0] / (objects.scale * 8))
+        //     perspectiveObject[p] = [transformedObject[p][1]*multiplier,transformedObject[p][2]*multiplier]
+        // }
+
         // apply perspective shift
 
         for (let p=0; p<transformedObject.length; p++) {
-            multiplier = 1 + (transformedObject[p][0] / (objects.scale * 8))
-            perspectiveObject[p] = [transformedObject[p][1]*multiplier,transformedObject[p][2]*multiplier]
+            csysPerspectiveObject[p] = [transformedObject[p][0]-(cameraPosition[0]*objects.scale), transformedObject[p][1]-(cameraPosition[1]*objects.scale), transformedObject[p][2]-(cameraPosition[2]*objects.scale)]
         }
+        for (let q=0; q<transformedObject.length; q++) {
+            perspectiveObject[q] = [((planePosition[0]*objects.scale)/csysPerspectiveObject[q][0])*csysPerspectiveObject[q][1]+(planePosition[1]*objects.scale), ((planePosition[0]*objects.scale)/csysPerspectiveObject[q][0])*csysPerspectiveObject[q][2]+(planePosition[2]*objects.scale)]
+        }
+
 
         // draw transformed object
 
@@ -197,6 +210,8 @@ function setObjectType(type) {
     object = objects.shapes[type].points;
     objectInstructions = objects.shapes[type].instructions;
 }
+
+// allows for page to be loaded on set object other than default
 
 if (window.location.hash.substr(1)) {
     setObjectType(window.location.hash.substr(1))
