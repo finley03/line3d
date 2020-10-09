@@ -4,3 +4,7 @@ Initially you would enter parameters for the object, and this would be transform
 I quickly realised the multiplying floating point errors would make it unusable, so I rewrote much of it to use absolute position relative to the center of the canvas.
 
 Currently the perspective transormation used is NOT accurate. It is a bit of a work around and it distorts planes slightly
+
+Code contributors:
+HarriXS
+electroplankton
