@@ -1,3 +1,7 @@
+let build = "0.4";
+document.getElementById("title").innerHTML = "line3d " + build;
+
+
 // objects
 
 class Objects {
@@ -5,15 +9,23 @@ class Objects {
         this.originalShapes = {
             get getShapes() {
                 return {
-                    Cube: {
+                    cube: {
+                        name:"Cube",
                         points:[[1,1,1],[1,1,-1],[-1,1,1],[-1,1,-1],[1,-1,1],[1,-1,-1],[-1,-1,1],[-1,-1,-1]],
                         instructions:[[0,1],[1,3],[3,2],[2,0],[4,5],[5,7],[7,6],[6,4],[0,4],[2,6],[1,5],[3,7]]
                     },
-                    Pyramid: {
+                    wf_cube: {
+                        name:"Wireframe Cube",
+                        points:[[1,1,1],[1,1,-1],[-1,1,1],[-1,1,-1],[1,-1,1],[1,-1,-1],[-1,-1,1],[-1,-1,-1]],
+						instructions:[[0,1],[0,3],[1,3],[3,2],[1,4],[2,0],[4,5],[2,7],[5,7],[7,6],[2,4],[5,3],[6,5],[6,4],[0,4],[2,6],[1,5],[3,7]]
+                    },
+                    sq_pyramid: {
+                        name:"Pyramid",
                         points:[[1,1,-0.6],[1,-1,-0.6],[-1,-1,-0.6],[-1,1,-0.6],[0,0,0.8]],
                         instructions:[[0,1],[1,2],[2,3],[3,0],[0,4],[1,4],[2,4],[3,4]]
                     },
-                    Line: {
+                    line: {
+                        name:"Line",
                         points:[[1,1,0],[-1,-1,0]],
                         instructions:[[1,0]]
                     },
@@ -45,9 +57,9 @@ class Objects {
         for (let shape in this.shapes) {
             let button = document.createElement("button");
             button.type = "button";
-            button.innerHTML = shape;
-            button.id = "button";
-            button.setAttribute("onclick", 'setObjectType("'+shape+'")')
+            button.innerHTML = this.shapes[shape].name;
+            button.className = "objButton";
+            button.addEventListener("click", function(){setObjectType( shape )}, false);
             let element = document.getElementById("buttons");
             element.appendChild(button);
         }
@@ -65,7 +77,7 @@ objects = new Objects();
 
 // define variables and constants
 
-let displayObject = 'Cube'
+let displayObject = 'cube'
 let frameRate = 60;
 let xTheta = 0; // starting position in degrees
 let yTheta = 0;
@@ -162,6 +174,8 @@ function drawLoop() {
 
         ctx.stroke();
 
+        // increment position counters
+
         xTheta += xRotateSpeed;
         if (xTheta >= 360) { xTheta -= 360; }
         if (xTheta < 0) { xTheta += 360; }
@@ -182,4 +196,8 @@ function setObjectType(type) {
     displayObject = type;
     object = objects.shapes[type].points;
     objectInstructions = objects.shapes[type].instructions;
+}
+
+if (window.location.hash.substr(1)) {
+    setObjectType(window.location.hash.substr(1))
 }

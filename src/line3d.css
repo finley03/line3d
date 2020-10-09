@@ -1,48 +1,69 @@
-head {
+:root {
+    --background: #242424;
+    --text: #aaaaaa;
+    --button-background: #343434;
+    --button-hover: #404040;
+    --button-pressed: #505050;
+}
+
+* {
     margin: 0;
     padding: 0;
+    font-family: monospace;
+}
+
+div {
+    color: var(--text);
+}
+
+h1 {
+    position: absolute;
+    color: var(--text);
+    top: 7px;
+    left: 10px;
+    font-size: 25px;
 }
 
 body {
-    margin: 0;
-    padding: 0;
     overflow: hidden;
-    background-color: #242424;
+    background-color: var(--background);
 }
 
 #buttons {
     position: absolute;
-    bottom: 15px;
-    right: 15px;
+    bottom: 10px;
+    right: 10px;
 }
 
-#button {
-    background-color: #343434;
+.objButton {
+    background-color: var(--button-background);
     border: none;
-    color: #aaaaaa;
+    color: var(--text);
     padding: 15px 32px;
     margin: 2px 4px;
     border-radius: 2px;
 }
 
-#button:visited {
+.objButton:visited {
     outline: none;
 }
 
-#button:focus {
+.objButton:focus {
     outline: none;
 }
 
-#button:hover {
-    background-color: #404040;
+.objButton:hover {
+    background-color: var(--button-hover);
 }
 
-#button:active {
-    background-color: #505050;
+.objButton:active {
+    background-color: var(--button-pressed);
 }
 
 #object {
-    margin: 0;
-    padding: 0;
-    background-color: #242424;
+    z-index: -1;
+    position: fixed;
+    top: 0;
+    left: 0;
+    background-color: var(--background);
 }
