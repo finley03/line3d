@@ -1,48 +1,61 @@
-head {
-    margin: 0;
-    padding: 0;
+:root {
+	--bg:#242424;
+	--text:#aaa;
+	--btn-bg:#343434;
+	--btn-hover:#404040;
+	--btn-pressed:#505050;
+}
+
+* {
+	margin:0;
+	padding:0;
+	font-family:monospace;
+} /* fixes that weird padding chrome likes to add to the body, and other stuff. */
+
+p, h1, span, div {
+	color:var(--text);
 }
 
 body {
-    margin: 0;
-    padding: 0;
-    overflow: hidden;
-    background-color: #242424;
+	overflow: hidden;
+	background-color: var(--bg);
 }
 
 #buttons {
-    position: absolute;
-    bottom: 15px;
-    right: 15px;
+	position: absolute;
+	bottom: 15px;
+	right: 15px;
 }
 
-#button {
-    background-color: #343434;
-    border: none;
-    color: #aaaaaa;
-    padding: 15px 32px;
-    margin: 2px 4px;
-    border-radius: 2px;
+.objbutton {
+	background-color: var(--btn-bg);
+	border: none;
+	color: var(--text);
+	padding: 15px 32px;
+	margin: 2px 4px;
+	border-radius: 2px;
 }
 
-#button:visited {
-    outline: none;
+.objbutton:visited {
+	outline: none;
 }
 
-#button:focus {
-    outline: none;
+.objbutton:focus {
+	outline: none;
 }
 
-#button:hover {
-    background-color: #404040;
+.objbutton:hover {
+	background-color: var(--btn-hover);
 }
 
-#button:active {
-    background-color: #505050;
+.objbutton:active {
+	background-color: var(--btn-pressed);
 }
 
 #object {
-    margin: 0;
-    padding: 0;
-    background-color: #242424;
+	z-index:-1; /* act as background */
+	position:fixed;
+	top:0;
+	left:0;
+	background-color: var(--bg);
 }

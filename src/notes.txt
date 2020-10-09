@@ -4,3 +4,9 @@ Initially you would enter parameters for the object, and this would be transform
 I quickly realised the multiplying floating point errors would make it unusable, so I rewrote much of it to use absolute position relative to the center of the canvas.
 
 Currently the perspective transormation used is NOT accurate. It is a bit of a work around and it distorts planes slightly
+
+seths note:
+
+it is entirely possible to add .obj file import support with some hacky engineerin,
+as wf objs are essentially our object storage plus some textural metadata
+tl;dr drop all curves, and output in js object array thingy.
