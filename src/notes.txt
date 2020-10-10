@@ -5,6 +5,7 @@ I quickly realised the multiplying floating point errors would make it unusable,
 
 Perspective is NOW accurate.
 Now has multi object support, although objects can only exist at 0,0,0 on the coordinate system.
+Basic options menu being worked on.
 
 Code contributors:
 HarriXS
