@@ -99,7 +99,7 @@ body {
 
 .checkmark {
     position: absolute;
-    left: 75px;
+    left: 100px;
     height: 15px;
     width: 15px;
     background-color: var(--button-pressed);

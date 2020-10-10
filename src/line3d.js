@@ -1,4 +1,4 @@
-let build = "0.6";
+let build = "0.6.2";
 document.getElementById("title").innerHTML = "line3d " + build;
 
 // objects
@@ -187,7 +187,7 @@ optionspanel = new OptionsPanel();
 
 // define variables and constants
 
-let displayObject = ['cube', 'line'];
+let displayObject = ['cube', 'sq_pyramid'];
 let frameRate = 60;
 let cameraPosition = [7,0,0];
 let planePosition = [-7,0,0];
@@ -204,7 +204,8 @@ let perspectiveObject = new Array(object.length); for (let n=0; n<perspectiveObj
 let csysPerspectiveObject = new Array(object.length); for (let n=0; n<perspectiveObject.length; n++) { perspectiveObject[n] = new Array(3); }
 let rotate = true;
 
-optionspanel.addCheckbox("Rotate?", "rotationCheckBox", toggleRotation, true);
+optionspanel.addCheckbox("Rotation", "rotationCheckBox", toggleRotation, true);
+optionspanel.addCheckbox("Csys Display", "csysCheckbox", toggleCsys, false);
 
 // setup event listeners
 let button = document.getElementById("optionsButton");
@@ -424,14 +425,6 @@ function toggleRotation() {
     rotate = !rotate;
 }
 
-function updateXRotateSpeed(value) {
-    xRotateSpeed = parseFloat(value);
-}
-
-function updateYRotateSpeed(value) {
-    yRotateSpeed = parseFloat(value);
-}
-
-function updateZRotateSpeed(value) {
-    zRotateSpeed = parseFloat(value);
+function toggleCsys() {
+    showCsys = !showCsys;
 }
