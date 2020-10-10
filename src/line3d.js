@@ -1,79 +1,8 @@
 let build = "0.5";
 document.getElementById("title").innerHTML = "line3d " + build;
 
-
-// objects
-
-class Objects {
-    constructor() {
-        this.originalShapes = {
-            get getShapes() {
-                return {
-                    cube: {
-                        name:"Cube",
-                        points:[[1,1,1],[1,1,-1],[-1,1,1],[-1,1,-1],[1,-1,1],[1,-1,-1],[-1,-1,1],[-1,-1,-1]],
-                        instructions:[[0,1],[1,3],[3,2],[2,0],[4,5],[5,7],[7,6],[6,4],[0,4],[2,6],[1,5],[3,7]]
-                    },
-                    wf_cube: {
-                        name:"Wireframe Cube",
-                        points:[[1,1,1],[1,1,-1],[-1,1,1],[-1,1,-1],[1,-1,1],[1,-1,-1],[-1,-1,1],[-1,-1,-1]],
-						instructions:[[0,1],[0,3],[1,3],[3,2],[1,4],[2,0],[4,5],[2,7],[5,7],[7,6],[2,4],[5,3],[6,5],[6,4],[0,4],[2,6],[1,5],[3,7]]
-                    },
-                    sq_pyramid: {
-                        name:"Pyramid",
-                        points:[[1,1,-0.6],[1,-1,-0.6],[-1,-1,-0.6],[-1,1,-0.6],[0,0,0.8]],
-                        instructions:[[0,1],[1,2],[2,3],[3,0],[0,4],[1,4],[2,4],[3,4]]
-                    },
-                    line: {
-                        name:"Line",
-                        points:[[1,1,0],[-1,-1,0]],
-                        instructions:[[1,0]]
-                    },
-                }
-            }
-        }
-
-        this.setScale();
-        this.createButtons();
-    }
-
-    // scale objects to fit window
-
-    scaleObjects() {
-        this.scale = Math.min(window.innerWidth, window.innerHeight) * 0.25;
-
-        for (let shape in this.shapes) {
-            for (let s = 0; s < (this.shapes[shape]["points"]).length; s++) {
-                for (let t = 0; t < (this.shapes[shape]["points"][0]).length; t++) {
-                    this.shapes[shape]["points"][s][t] *= this.scale;
-                }
-            }
-        }
-    }
-
-    // create buttons based on objects in class
-
-    createButtons() {
-        for (let shape in this.shapes) {
-            let button = document.createElement("button");
-            button.type = "button";
-            button.innerHTML = this.shapes[shape].name;
-            button.className = "objButton";
-            button.addEventListener("click", function(){setObjectType( shape )}, false);
-            let element = document.getElementById("buttons");
-            element.appendChild(button);
-        }
-    }
-
-    // configures object from window size
-
-    setScale() {
-        this.shapes = this.originalShapes.getShapes;
-        this.scaleObjects();
-    }
-}
-
-objects = new Objects();
+objects = new Objects();    // objects.js
+optionspanel = new OptionsPanel();  // options.js
 
 // define variables and constants
 
@@ -97,6 +26,17 @@ let compoundMatrix = [[],[],[]];
 let transformedObject = new Array(object.length); for (let n=0; n<transformedObject.length; n++) { transformedObject[n] = new Array(3); }
 let perspectiveObject = new Array(object.length); for (let n=0; n<perspectiveObject.length; n++) { perspectiveObject[n] = new Array(3); }
 let csysPerspectiveObject = new Array(object.length); for (let n=0; n<perspectiveObject.length; n++) { perspectiveObject[n] = new Array(3); }
+let rotate = true;
+
+// create the "options" (options.js)
+optionspanel.addCheckbox("Rotate?", "rotationCheckBox", toggleRotation, true);
+optionspanel.addSlider("X Rotation Speed", "xRotationSpeedSlider", updateXRotateSpeed, 0, 1, xRotateSpeed, 0.001);
+optionspanel.addSlider("Y Rotation Speed", "yRotationSpeedSlider", updateYRotateSpeed, 0, 1, yRotateSpeed, 0.001);
+optionspanel.addSlider("Z Rotation Speed", "zRotationSpeedSlider", updateZRotateSpeed, 0, 1, zRotateSpeed, 0.001);
+
+// setup event listeners
+let button = document.getElementById("optionsButton");
+button.addEventListener("click", function(){toggleSideBar()}, false);
 
 // setup canvas context
 
@@ -173,7 +113,6 @@ function drawLoop() {
             perspectiveObject[q] = [((planePosition[0]*objects.scale)/csysPerspectiveObject[q][0])*csysPerspectiveObject[q][1]+(planePosition[1]*objects.scale), ((planePosition[0]*objects.scale)/csysPerspectiveObject[q][0])*csysPerspectiveObject[q][2]+(planePosition[2]*objects.scale)]
         }
 
-
         // draw transformed object
 
         ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
@@ -189,15 +128,17 @@ function drawLoop() {
 
         // increment position counters
 
-        xTheta += xRotateSpeed;
-        if (xTheta >= 360) { xTheta -= 360; }
-        if (xTheta < 0) { xTheta += 360; }
-        yTheta += yRotateSpeed;
-        if (yTheta >= 360) { xTheta -= 360; }
-        if (yTheta < 0) { xTheta = xTheta += 360; }
-        zTheta += zRotateSpeed;
-        if (zTheta >= 360) { zTheta -= 360; }
-        if (zTheta < 0) { zTheta += 360; }
+        if (rotate) {
+            xTheta += xRotateSpeed;
+            if (xTheta >= 360) { xTheta -= 360; }
+            if (xTheta < 0) { xTheta += 360; }
+            yTheta += yRotateSpeed;
+            if (yTheta >= 360) { xTheta -= 360; }
+            if (yTheta < 0) { xTheta = xTheta += 360; }
+            zTheta += zRotateSpeed;
+            if (zTheta >= 360) { zTheta -= 360; }
+            if (zTheta < 0) { zTheta += 360; }
+        }
  
         drawLoop()
     }, (1000/frameRate));
@@ -211,8 +152,42 @@ function setObjectType(type) {
     objectInstructions = objects.shapes[type].instructions;
 }
 
-// allows for page to be loaded on set object other than default
-
 if (window.location.hash.substr(1)) {
     setObjectType(window.location.hash.substr(1))
+}
+
+function openSideBar() {
+    document.getElementById("optionsSidebar").style.width = "300px";
+    document.getElementById("optionsButton").textContent = ">";
+    document.getElementById("optionsButton").style.right = "300px";
+}
+
+function closeSideBar() {
+    document.getElementById("optionsSidebar").style.width = "0px";
+    document.getElementById("optionsButton").textContent = "<";
+    document.getElementById("optionsButton").style.right = "0px";
+}
+
+function toggleSideBar() {
+    if (document.getElementById("optionsButton").textContent == "<") {
+        openSideBar();
+    } else {
+        closeSideBar();
+    }
+}
+
+function toggleRotation() {
+    rotate = !rotate;
+}
+
+function updateXRotateSpeed(value) {
+    xRotateSpeed = parseFloat(value);
+}
+
+function updateYRotateSpeed(value) {
+    yRotateSpeed = parseFloat(value);
+}
+
+function updateZRotateSpeed(value) {
+    zRotateSpeed = parseFloat(value);
 }

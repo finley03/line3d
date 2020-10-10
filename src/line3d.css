@@ -63,6 +63,142 @@ body {
     background-color: var(--button-pressed);
 }
 
+#optionsSidebar {
+    z-index: 1;
+    height: 40%;
+    width: 0px;
+    position: fixed;
+    bottom: 120px;
+    right: 0px;
+    background-color: var(--button-background);
+    transition: 0.5s;
+    opacity: 0.8;
+    border-radius: 2px;
+}
+
+#optionsButton {
+    position: absolute;
+    right: 0px;
+    bottom: 120px;
+    padding: 10px 5px;
+    transition: 0.5s;
+}
+
+#optionsTitle {
+    position: absolute;
+    left: 10px;
+    top: 10px;
+}
+
+.options {
+    position: absolute;
+    left: 10px;
+    top: 0px;
+    overflow: visible;
+}
+
+.checkmark {
+    position: absolute;
+    left: 75px;
+    height: 15px;
+    width: 15px;
+    background-color: var(--button-pressed);
+}
+
+.checkboxContainer {
+    display: block;
+    position: relative;
+    cursor: pointer;
+    user-select: none;
+}
+
+.checkboxContainer input {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+    height: 0;
+    width: 0;
+}
+
+/*change the colour of the checkbox when hovered over*/
+.checkboxContainer:hover input ~ .checkmark {
+    background-color: #606060;
+}
+
+/*change the colour of the checkbox when checked over*/
+.checkboxContainer input:checked ~ .checkmark {
+    background-color: #707070;
+}
+
+.checkmark:after {
+    content: "x";
+    position: absolute;
+    left: 4px;
+    bottom: 1px;
+    display: none;
+}
+
+.checkboxContainer input:checked ~ .checkmark:after {
+    display: block;
+}
+
+.slidercontainer {
+    display: block;
+    position: relative;
+    cursor: pointer;
+    user-select: none;
+    overflow: visible;
+}
+  
+.slider {
+    position: relative;
+    right: -25px;
+    top: 0px;
+    -webkit-appearance: none;
+    height: 10px;
+    background: var(--button-pressed);
+    outline: none;
+    opacity: 0.7;
+    -webkit-transition: .2s;
+    transition: .2s;
+    border-radius: 5px;
+    width: 75px;
+}
+
+.slider:hover {
+    opacity: 1;
+}
+
+.slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    background: #707070;
+    cursor: pointer;
+}
+
+.sliderContainer div {
+    position: relative;
+    right: -230px;
+    top: -15px;
+}
+
+#options {
+    position: absolute;
+    top: 50px;
+}
+
+.checkboxContainer {
+    padding: 3px 3px;
+}
+
+.sliderContainer {
+    padding: 3px 3px;
+    height: 17px;
+}
+
 #object {
     z-index: -1;
     position: fixed;
