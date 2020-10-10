@@ -1,4 +1,4 @@
-let build = "0.4.1";
+let build = "0.5";
 document.getElementById("title").innerHTML = "line3d " + build;
 
 
