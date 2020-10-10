@@ -14,19 +14,21 @@ Currently you can change values like starting position, rotation speed and direc
 You can also add objects to display. Put 3d coordinates (somewhere around 1 if you want it to display properly) into an array called 'points' and add list the indexes of the points to join into an array called 'instructions'. Examples in line3d.js
 
 ### Current Features:
-* rotate an object on all 3 axes
+* rotate objects on all 3 axes
+* translate objects in all 3 directions
+* move camera to any position
+* rotate camera to point in any direction
 * accurate perspective
 * multiple objects (at center)
-* coordinate system display
+* coordinate system display#
+* base plane
 
 ### Coming (probably):
 * hide/fade lines on back side of object
 * shaded polygons
-* translation
-* dynamic viewpoints
 * animation features
 * .obj file support
 
 more if I have the time
 
-Version 0.6.2
+Version 0.7

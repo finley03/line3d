@@ -1,4 +1,4 @@
-let build = "0.6.2";
+let build = "0.7";
 document.getElementById("title").innerHTML = "line3d " + build;
 
 // objects
@@ -8,9 +8,19 @@ class Objects {
         this.originalShapes = {
             get getShapes() {
                 return {
+                    base: { // base plane MUST stay as first shape
+                        name: "Plane",
+                        color: "#707070",
+                        position: [0,0,-2],
+                        theta: [0,0,0],
+                        rotateSpeed: [0,0,0],
+                        points: [[5,5,0],[5,4,0],[5,3,0],[5,2,0],[5,1,0],[5,0,0],[5,-1,0],[5,-2,0],[5,-3,0],[5,-4,0],[5,-5,0],[-5,5,0],[-5,4,0],[-5,3,0],[-5,2,0],[-5,1,0],[-5,0,0],[-5,-1,0],[-5,-2,0],[-5,-3,0],[-5,-4,0],[-5,-5,0],[4,5,0],[3,5,0],[2,5,0],[1,5,0],[0,5,0],[-1,5,0],[-2,5,0],[-3,5,0],[-4,5,0],[4,-5,0],[3,-5,0],[2,-5,0],[1,-5,0],[0,-5,0],[-1,-5,0],[-2,-5,0],[-3,-5,0],[-4,-5,0]],
+                        instructions: [[0,11],[1,12],[2,13],[3,14],[4,15],[5,16],[6,17],[7,18],[8,19],[9,20],[10,21],[0,10],[22,31],[23,32],[24,33],[25,34],[26,35],[27,36],[28,37],[29,38],[30,39],[11,21]]
+                    },
                     cube: {
                         name:"Cube",
                         color: "#aaaaaa",
+                        position: [4,0,0],
                         theta: [0,0,0],
                         rotateSpeed: [0.043,0.157,0.75],
                         points:[[1,1,1],[1,1,-1],[-1,1,1],[-1,1,-1],[1,-1,1],[1,-1,-1],[-1,-1,1],[-1,-1,-1]],
@@ -19,6 +29,7 @@ class Objects {
                     wf_cube: {
                         name:"Wireframe Cube",
                         color: "#aa2020",
+                        position: [-2,-2,0],
                         theta: [0,0,0],
                         rotateSpeed: [0.043,0.157,0.75],
                         points:[[1,1,1],[1,1,-1],[-1,1,1],[-1,1,-1],[1,-1,1],[1,-1,-1],[-1,-1,1],[-1,-1,-1]],
@@ -27,6 +38,7 @@ class Objects {
                     sq_pyramid: {
                         name:"Pyramid",
                         color: "#00aa00",
+                        position: [0,2,-0.4],
                         theta: [0,0,0],
                         rotateSpeed: [-0.043,-0.157,-0.75],
                         points:[[1,1,-0.6],[1,-1,-0.6],[-1,-1,-0.6],[-1,1,-0.6],[0,0,0.8]],
@@ -35,11 +47,13 @@ class Objects {
                     line: {
                         name:"Line",
                         color: "#3030aa",
+                        position: [0,0,0],
                         theta: [0,0,0],
                         rotateSpeed: [0.043,0.157,0.75],
                         points:[[1,1,0],[-1,-1,0]],
                         instructions:[[1,0]]
-                    },
+                    }
+
                 }
             }
         }
@@ -187,25 +201,31 @@ optionspanel = new OptionsPanel();
 
 // define variables and constants
 
-let displayObject = ['cube', 'sq_pyramid'];
+let displayObject = ['wf_cube', 'sq_pyramid', 'cube'];
 let frameRate = 60;
-let cameraPosition = [7,0,0];
-let planePosition = [-7,0,0];
+let cameraPosition = [8,-6.713,5];
+let cameraDirection = [0,-30,-40];
+let planePosition = [-7,0,0]; // first value is perspective level, must be negative. smaller number = more perspective
 let showCsys = false;
-let object = objects.shapes[displayObject[0]].points;
-let objectInstructions = objects.shapes[displayObject[0]].instructions;
+let showPlane = true;
+let object = objects.shapes["base"].points;
+let objectInstructions = objects.shapes["base"].instructions;
 let xMatrix = [[],[],[]];
 let yMatrix = [[],[],[]];
 let zMatrix = [[],[],[]];
 let intermediateMatrix = [[],[],[]];
 let compoundMatrix = [[],[],[]];
-let transformedObject = new Array(object.length); for (let n=0; n<transformedObject.length; n++) { transformedObject[n] = new Array(3); }
-let perspectiveObject = new Array(object.length); for (let n=0; n<perspectiveObject.length; n++) { perspectiveObject[n] = new Array(3); }
-let csysPerspectiveObject = new Array(object.length); for (let n=0; n<perspectiveObject.length; n++) { perspectiveObject[n] = new Array(3); }
-let rotate = true;
+let cameraIntermediateMatrix = [[],[],[]];
+let cameraCompoundMatrix = [[],[],[]];
+let transformedObject = new Array(object.length); for (let n=0; n<objects.shapes["base"].points.length; n++) { transformedObject[n] = new Array(3); }
+let perspectiveObject = new Array(object.length); for (let n=0; n<transformedObject.length; n++) { perspectiveObject[n] = new Array(3); }
+let csysPerspectiveObject = new Array(object.length); for (let n=0; n<perspectiveObject.length; n++) { csysPerspectiveObject[n] = new Array(3); }
+let transformedPerspectiveObject = new Array(object.length); for (let n=0; n<perspectiveObject.length; n++) { transformedPerspectiveObject[n] = new Array(3); }
+let rotate = false;
 
-optionspanel.addCheckbox("Rotation", "rotationCheckBox", toggleRotation, true);
+optionspanel.addCheckbox("Rotation", "rotationCheckBox", toggleRotation, false);
 optionspanel.addCheckbox("Csys Display", "csysCheckbox", toggleCsys, false);
+optionspanel.addCheckbox("Base Plane", "baseplaneCheckbox", toggleBase, true);
 
 // setup event listeners
 let button = document.getElementById("optionsButton");
@@ -243,6 +263,12 @@ function drawLoop() {
     setTimeout(function() {
         
         ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+        if (showPlane == true) {
+            id = "base"
+            object = objects.shapes[id].points;
+            objectInstructions = objects.shapes[id].instructions;
+            draw(object,objectInstructions,objects.shapes[id].color,id);
+        }
         if (showCsys == true) {
             for(c in objects.csysShapes) {
                 object = objects.csysShapes[c].points;
@@ -251,9 +277,10 @@ function drawLoop() {
             }
         }
         for(let o=0; o<displayObject.length; o++) {
-            object = objects.shapes[displayObject[o]].points;
-            objectInstructions = objects.shapes[displayObject[o]].instructions;
-            draw(object,objectInstructions,objects.shapes[displayObject[o]].color,o);
+            id = displayObject[o];
+            object = objects.shapes[id].points;
+            objectInstructions = objects.shapes[id].instructions;
+            draw(object,objectInstructions,objects.shapes[id].color,id);
         }
  
         drawLoop()
@@ -262,20 +289,24 @@ function drawLoop() {
 
 // draw object on screen
 
-function draw(object,objectInstructions,color,o) {
+function draw(object,objectInstructions,color,id) {
 
-    let xTheta = objects.shapes[displayObject[o]].theta[0];
-    let yTheta = objects.shapes[displayObject[o]].theta[1];
-    let zTheta = objects.shapes[displayObject[o]].theta[2];
-    let xRotateSpeed = objects.shapes[displayObject[o]].rotateSpeed[0];
-    let yRotateSpeed = objects.shapes[displayObject[o]].rotateSpeed[1];
-    let zRotateSpeed = objects.shapes[displayObject[o]].rotateSpeed[2];
+    let xTheta = objects.shapes[id].theta[0];
+    let yTheta = objects.shapes[id].theta[1];
+    let zTheta = objects.shapes[id].theta[2];
+    let xRotateSpeed = objects.shapes[id].rotateSpeed[0];
+    let yRotateSpeed = objects.shapes[id].rotateSpeed[1];
+    let zRotateSpeed = objects.shapes[id].rotateSpeed[2];
     
     xMatrix = [[1,0,0],[0,Math.cos(xTheta*Math.PI/180),Math.sin(xTheta*Math.PI/180)],[0,-Math.sin(xTheta*Math.PI/180),Math.cos(xTheta*Math.PI/180)]];
     yMatrix = [[Math.cos(yTheta*Math.PI/180),0,-Math.sin(yTheta*Math.PI/180)],[0,1,0],[Math.sin(yTheta*Math.PI/180),0,Math.cos(yTheta*Math.PI/180)]];
     zMatrix = [[Math.cos(zTheta*Math.PI/180),Math.sin(zTheta*Math.PI/180),0],[-Math.sin(zTheta*Math.PI/180),Math.cos(zTheta*Math.PI/180),0],[0,0,1]];
     
-    // multiply matricies order zyx
+    xCameraMatrix = [[1,0,0],[0,Math.cos(cameraDirection[0]*Math.PI/180),-Math.sin(cameraDirection[0]*Math.PI/180)],[0,Math.sin(cameraDirection[0]*Math.PI/180),Math.cos(cameraDirection[0]*Math.PI/180)]];
+    yCameraMatrix = [[Math.cos(cameraDirection[1]*Math.PI/180),0,Math.sin(cameraDirection[1]*Math.PI/180)],[0,1,0],[-Math.sin(cameraDirection[1]*Math.PI/180),0,Math.cos(cameraDirection[1]*Math.PI/180)]];
+    zCameraMatrix = [[Math.cos(cameraDirection[2]*Math.PI/180),-Math.sin(cameraDirection[2]*Math.PI/180),0],[Math.sin(cameraDirection[2]*Math.PI/180),Math.cos(cameraDirection[2]*Math.PI/180),0],[0,0,1]];
+
+    // multiply matricies order zyx (x then y then z)
 
     for (let j=0; j<xMatrix.length; j++) {
         for (let k=0; k<xMatrix[0].length; k++) {
@@ -296,6 +327,14 @@ function draw(object,objectInstructions,color,o) {
         }
     }
 
+    // translate objects
+
+    for (let t=0; t<transformedObject.length; t++) {
+        transformedObject[t] = [transformedObject[t][0]+(objects.shapes[id].position[0]*objects.scale), transformedObject[t][1]+(objects.shapes[id].position[1]*objects.scale), transformedObject[t][2]+(objects.shapes[id].position[2]*objects.scale)]
+    }
+
+
+
     // old perspective code (for reference)
 
     // for (let p=0; p<transformedObject.length; p++) {
@@ -303,15 +342,32 @@ function draw(object,objectInstructions,color,o) {
     //     perspectiveObject[p] = [transformedObject[p][1]*multiplier,transformedObject[p][2]*multiplier]
     // }
 
-    // apply perspective shift
+    // apply perspective shift order xyz (z then y then x)
+
+    for (let j=0; j<zCameraMatrix.length; j++) {
+        for (let k=0; k<zCameraMatrix[0].length; k++) {
+            cameraIntermediateMatrix[j][k] = zCameraMatrix[j][0]*yCameraMatrix[0][k]+zCameraMatrix[j][1]*yCameraMatrix[1][k]+zCameraMatrix[j][2]*yCameraMatrix[2][k];
+        }
+    }
+    for (let l=0; l<cameraIntermediateMatrix.length; l++) {
+        for (let m=0; m<cameraIntermediateMatrix[0].length; m++) {
+            cameraCompoundMatrix[l][m] = cameraIntermediateMatrix[l][0]*xCameraMatrix[0][m]+cameraIntermediateMatrix[l][1]*xCameraMatrix[1][m]+cameraIntermediateMatrix[l][2]*xCameraMatrix[2][m];
+        }
+    }
 
     for (let p=0; p<transformedObject.length; p++) {
-        csysPerspectiveObject[p] = [transformedObject[p][0]-(cameraPosition[0]*objects.scale), transformedObject[p][1]-(cameraPosition[1]*objects.scale), transformedObject[p][2]-(cameraPosition[2]*objects.scale)]
-    }
-    for (let q=0; q<transformedObject.length; q++) {
-        perspectiveObject[q] = [((planePosition[0]*objects.scale)/csysPerspectiveObject[q][0])*csysPerspectiveObject[q][1]+(planePosition[1]*objects.scale), ((planePosition[0]*objects.scale)/csysPerspectiveObject[q][0])*csysPerspectiveObject[q][2]+(planePosition[2]*objects.scale)]
+        csysPerspectiveObject[p] = [transformedObject[p][0]-(cameraPosition[0]*objects.scale), transformedObject[p][1]-(cameraPosition[1]*objects.scale), transformedObject[p][2]-(cameraPosition[2]*objects.scale)];
     }
 
+    for (let j=0; j<csysPerspectiveObject.length; j++) {
+        for (let k=0; k<csysPerspectiveObject[0].length; k++) {
+            transformedPerspectiveObject[j][k] = csysPerspectiveObject[j][0]*cameraCompoundMatrix[0][k]+csysPerspectiveObject[j][1]*cameraCompoundMatrix[1][k]+csysPerspectiveObject[j][2]*cameraCompoundMatrix[2][k];
+        }
+    }
+
+    for (let q=0; q<transformedObject.length; q++) {
+        perspectiveObject[q] = [((planePosition[0]*objects.scale)/transformedPerspectiveObject[q][0])*transformedPerspectiveObject[q][1]+(planePosition[1]*objects.scale), ((planePosition[0]*objects.scale)/transformedPerspectiveObject[q][0])*transformedPerspectiveObject[q][2]+(planePosition[2]*objects.scale)];
+    }
 
     // draw transformed object
 
@@ -340,18 +396,22 @@ function draw(object,objectInstructions,color,o) {
         if (zTheta < 0) { zTheta += 360; }
     }
 
-    objects.shapes[displayObject[o]].theta[0] = xTheta;
-    objects.shapes[displayObject[o]].theta[1] = yTheta;
-    objects.shapes[displayObject[o]].theta[2] = zTheta;
-    objects.shapes[displayObject[o]].rotateSpeed[0] = xRotateSpeed;
-    objects.shapes[displayObject[o]].rotateSpeed[1] = yRotateSpeed;
-    objects.shapes[displayObject[o]].rotateSpeed[2] = zRotateSpeed;
+    objects.shapes[id].theta[0] = xTheta;
+    objects.shapes[id].theta[1] = yTheta;
+    objects.shapes[id].theta[2] = zTheta;
+    objects.shapes[id].rotateSpeed[0] = xRotateSpeed;
+    objects.shapes[id].rotateSpeed[1] = yRotateSpeed;
+    objects.shapes[id].rotateSpeed[2] = zRotateSpeed;
 
 }
 
 // draws csys
 
 function drawCsys(transformedObject,objectInstructions,color) {
+
+    xCameraMatrix = [[1,0,0],[0,Math.cos(cameraDirection[0]*Math.PI/180),-Math.sin(cameraDirection[0]*Math.PI/180)],[0,Math.sin(cameraDirection[0]*Math.PI/180),Math.cos(cameraDirection[0]*Math.PI/180)]];
+    yCameraMatrix = [[Math.cos(cameraDirection[1]*Math.PI/180),0,Math.sin(cameraDirection[1]*Math.PI/180)],[0,1,0],[-Math.sin(cameraDirection[1]*Math.PI/180),0,Math.cos(cameraDirection[1]*Math.PI/180)]];
+    zCameraMatrix = [[Math.cos(cameraDirection[2]*Math.PI/180),-Math.sin(cameraDirection[2]*Math.PI/180),0],[Math.sin(cameraDirection[2]*Math.PI/180),Math.cos(cameraDirection[2]*Math.PI/180),0],[0,0,1]];
 
     // old perspective code (for reference)
 
@@ -362,13 +422,30 @@ function drawCsys(transformedObject,objectInstructions,color) {
 
     // apply perspective shift
 
-    for (let p=0; p<transformedObject.length; p++) {
-        csysPerspectiveObject[p] = [transformedObject[p][0]-(cameraPosition[0]*objects.scale), transformedObject[p][1]-(cameraPosition[1]*objects.scale), transformedObject[p][2]-(cameraPosition[2]*objects.scale)]
+    for (let j=0; j<zCameraMatrix.length; j++) {
+        for (let k=0; k<zCameraMatrix[0].length; k++) {
+            cameraIntermediateMatrix[j][k] = zCameraMatrix[j][0]*yCameraMatrix[0][k]+zCameraMatrix[j][1]*yCameraMatrix[1][k]+zCameraMatrix[j][2]*yCameraMatrix[2][k];
+        }
     }
-    for (let q=0; q<transformedObject.length; q++) {
-        perspectiveObject[q] = [((planePosition[0]*objects.scale)/csysPerspectiveObject[q][0])*csysPerspectiveObject[q][1]+(planePosition[1]*objects.scale), ((planePosition[0]*objects.scale)/csysPerspectiveObject[q][0])*csysPerspectiveObject[q][2]+(planePosition[2]*objects.scale)]
+    for (let l=0; l<cameraIntermediateMatrix.length; l++) {
+        for (let m=0; m<cameraIntermediateMatrix[0].length; m++) {
+            cameraCompoundMatrix[l][m] = cameraIntermediateMatrix[l][0]*xCameraMatrix[0][m]+cameraIntermediateMatrix[l][1]*xCameraMatrix[1][m]+cameraIntermediateMatrix[l][2]*xCameraMatrix[2][m];
+        }
     }
 
+    for (let p=0; p<transformedObject.length; p++) {
+        csysPerspectiveObject[p] = [transformedObject[p][0]-(cameraPosition[0]*objects.scale), transformedObject[p][1]-(cameraPosition[1]*objects.scale), transformedObject[p][2]-(cameraPosition[2]*objects.scale)];
+    }
+
+    for (let j=0; j<csysPerspectiveObject.length; j++) {
+        for (let k=0; k<csysPerspectiveObject[0].length; k++) {
+            transformedPerspectiveObject[j][k] = csysPerspectiveObject[j][0]*cameraCompoundMatrix[0][k]+csysPerspectiveObject[j][1]*cameraCompoundMatrix[1][k]+csysPerspectiveObject[j][2]*cameraCompoundMatrix[2][k];
+        }
+    }
+
+    for (let q=0; q<transformedObject.length; q++) {
+        perspectiveObject[q] = [((planePosition[0]*objects.scale)/transformedPerspectiveObject[q][0])*transformedPerspectiveObject[q][1]+(planePosition[1]*objects.scale), ((planePosition[0]*objects.scale)/transformedPerspectiveObject[q][0])*transformedPerspectiveObject[q][2]+(planePosition[2]*objects.scale)];
+    }
 
     // draw object
 
@@ -425,4 +502,8 @@ function toggleRotation() {
 
 function toggleCsys() {
     showCsys = !showCsys;
+}
+
+function toggleBase() {
+    showPlane = !showPlane;
 }
