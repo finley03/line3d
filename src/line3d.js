@@ -229,8 +229,6 @@ function setCanvas() {
 window.addEventListener("resize", function() {
     setCanvas();
     objects.setScale();
-    object = objects.shapes[displayObject].points;
-    objectInstructions = objects.shapes[displayObject].instructions;
 })
 
 
