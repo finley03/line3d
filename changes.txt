@@ -5,3 +5,4 @@ Merged pull request from electroplankton that added minor features and reworked 
 Quick css error fix (09/10/2020) v0.4.1
 Changed 3d projection code to enable accurate perspective. also enables camera position control (10/10/2020) v0.5
 Added multi object support and coordinate system display. Each object now contains its own color information as well as position and rotation information. (10/10/2020) v0.6
+Removed unnecessary variables (10/10/2020) v0.6.1

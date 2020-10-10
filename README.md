@@ -29,4 +29,4 @@ You can also add objects to display. Put 3d coordinates (somewhere around 1 if y
 
 more if I have the time
 
-Version 0.6
+Version 0.6.1
