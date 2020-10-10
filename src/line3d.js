@@ -1,4 +1,4 @@
-let build = "0.6.1";
+let build = "0.6";
 document.getElementById("title").innerHTML = "line3d " + build;
 
 // objects
@@ -130,11 +130,64 @@ class Objects {
     }
 }
 
+// TODO: Multiple object support
+class OptionsPanel {
+    constructor() {
+        this.sidebar = document.getElementById("optionsSidebar");
+        this.options = document.getElementById("options");
+    }
+
+    addCheckbox(displayName, idName, func, checked = false) {
+        let label = document.createElement("label");
+        label.className = "checkboxContainer";
+        label.id = idName;
+        label.innerHTML = displayName;
+        label.addEventListener("mousedown", func, false)
+        this.options.appendChild(label);
+        
+        let input = document.createElement("input");
+        input.type = "checkbox";
+        input.checked = checked;
+        label.appendChild(input);
+
+        let span = document.createElement("span");
+        span.className = "checkmark";
+        label.appendChild(span);
+    }
+
+    addSlider(displayName, idName, func, min = 1, max = 100, value = 50, step = 1) {
+        let div = document.createElement("div");
+        div.className = "sliderContainer";
+        div.innerHTML = displayName;
+        this.options.appendChild(div);
+        
+        let input = document.createElement("input");
+        input.type = "range";
+        input.min = min;
+        input.max = max;
+        input.value = value;    // for some reason, this will always round to the nearest integer (I'll look into a fix at some point)
+        input.step = step;
+        input.className = "slider";
+        input.id = idName;
+        div.appendChild(input);
+
+        let content = document.createElement("div");
+        content.innerHTML = document.getElementById(idName).value;
+        div.appendChild(content);
+
+        input.oninput = function() {
+            content.innerHTML = this.value;
+            func(this.value);
+        }
+    }
+}
+
 objects = new Objects();
+optionspanel = new OptionsPanel();
 
 // define variables and constants
 
-let displayObject = ['cube'];
+let displayObject = ['cube', 'line'];
 let frameRate = 60;
 let cameraPosition = [7,0,0];
 let planePosition = [-7,0,0];
@@ -149,6 +202,13 @@ let compoundMatrix = [[],[],[]];
 let transformedObject = new Array(object.length); for (let n=0; n<transformedObject.length; n++) { transformedObject[n] = new Array(3); }
 let perspectiveObject = new Array(object.length); for (let n=0; n<perspectiveObject.length; n++) { perspectiveObject[n] = new Array(3); }
 let csysPerspectiveObject = new Array(object.length); for (let n=0; n<perspectiveObject.length; n++) { perspectiveObject[n] = new Array(3); }
+let rotate = true;
+
+optionspanel.addCheckbox("Rotate?", "rotationCheckBox", toggleRotation, true);
+
+// setup event listeners
+let button = document.getElementById("optionsButton");
+button.addEventListener("click", function(){toggleSideBar()}, false);
 
 // setup canvas context
 
@@ -268,16 +328,18 @@ function draw(object,objectInstructions,color,o) {
     ctx.stroke();
 
     // increment position counters
-
-    xTheta += xRotateSpeed;
-    if (xTheta >= 360) { xTheta -= 360; }
-    if (xTheta < 0) { xTheta += 360; }
-    yTheta += yRotateSpeed;
-    if (yTheta >= 360) { yTheta -= 360; }
-    if (yTheta < 0) { yTheta += 360; }
-    zTheta += zRotateSpeed;
-    if (zTheta >= 360) { zTheta -= 360; }
-    if (zTheta < 0) { zTheta += 360; }
+    
+    if (rotate) {
+        xTheta += xRotateSpeed;
+        if (xTheta >= 360) { xTheta -= 360; }
+        if (xTheta < 0) { xTheta += 360; }
+        yTheta += yRotateSpeed;
+        if (yTheta >= 360) { yTheta -= 360; }
+        if (yTheta < 0) { yTheta += 360; }
+        zTheta += zRotateSpeed;
+        if (zTheta >= 360) { zTheta -= 360; }
+        if (zTheta < 0) { zTheta += 360; }
+    }
 
     objects.shapes[displayObject[o]].theta[0] = xTheta;
     objects.shapes[displayObject[o]].theta[1] = yTheta;
@@ -336,4 +398,40 @@ function setObjectType(type) {
 
 if (window.location.hash.substr(1)) {
     setObjectType(window.location.hash.substr(1))
+}
+
+function openSideBar() {
+    document.getElementById("optionsSidebar").style.width = "300px";
+    document.getElementById("optionsButton").textContent = ">";
+    document.getElementById("optionsButton").style.right = "300px";
+}
+
+function closeSideBar() {
+    document.getElementById("optionsSidebar").style.width = "0px";
+    document.getElementById("optionsButton").textContent = "<";
+    document.getElementById("optionsButton").style.right = "0px";
+}
+
+function toggleSideBar() {
+    if (document.getElementById("optionsButton").textContent == "<") {
+        openSideBar();
+    } else {
+        closeSideBar();
+    }
+}
+
+function toggleRotation() {
+    rotate = !rotate;
+}
+
+function updateXRotateSpeed(value) {
+    xRotateSpeed = parseFloat(value);
+}
+
+function updateYRotateSpeed(value) {
+    yRotateSpeed = parseFloat(value);
+}
+
+function updateZRotateSpeed(value) {
+    zRotateSpeed = parseFloat(value);
 }
