@@ -16,17 +16,17 @@ You can also add objects to display. Put 3d coordinates (somewhere around 1 if y
 ### Current Features:
 * rotate an object on all 3 axes
 * accurate perspective
-* that's it for now
+* multiple objects (at center)
+* coordinate system display
 
 ### Coming (probably):
 * hide/fade lines on back side of object
 * shaded polygons
 * translation
 * dynamic viewpoints
-* multiple objects
 * animation features
 * .obj file support
 
 more if I have the time
 
-Version 0.5
+Version 0.6

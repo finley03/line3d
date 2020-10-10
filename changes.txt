@@ -4,3 +4,4 @@ Merged pull request from HarriXS that added dynamic window resizing support (wit
 Merged pull request from electroplankton that added minor features and reworked some code (with light modification) (09/10/2020) v0.4
 Quick css error fix (09/10/2020) v0.4.1
 Changed 3d projection code to enable accurate perspective. also enables camera position control (10/10/2020) v0.5
+Added multi object support and coordinate system display. Each object now contains its own color information as well as position and rotation information. (10/10/2020) v0.6
