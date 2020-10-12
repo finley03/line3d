@@ -1,20 +1,36 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <meta charset="utf-8">
-        <link rel="stylesheet" href="line3d.css">
-    </head>
-    <body>
-        <h1 id=title></h1>
-        <canvas id='object' width='500' height='500'></canvas>
+	<head>
+		<meta charset="utf-8">
+		<link rel="stylesheet" href="line3d.css">
+	</head>
+	<body>
+		<div id="creditwrap">
+			<div id="credits"></div>
+			<div id="boxwrap">
+				<h1 class="title">line3d</h1>
+				<div id="authcont">
+					<p>S𝗲th D</p> <!-- only way to not get my name indexed by google -->
+					<p>Finley</p>
+					<p>Harri</p>
+				</div>
+				<div id="linkcont">
+					<a href=".">source code</a>
+					<a href="https://github.com/finley03/line3d">github</a>
+				</div>
+			</div>
+		</div>
+		<h1 id="title" class="title fade-out-credits"></h1>
 
-        <div id="optionsSidebar">
-            <h2 id="optionsTitle">Options</h2>
-            <div class="options" id="options"></div>
+		<canvas id='object' width='500' height='500'></canvas>
+
+		<div id="optionsSidebar">
+			<h2 id="optionsTitle">Options</h2>
+			<div class="options" id="options"></div>
 		</div>
 		<button class="objButton" id="optionsButton"><</button>
 
-        <div id="buttons"></div>
-        <script src='line3d.js'></script>
-    </body>
+		<div id="buttons"></div>
+		<script src='line3d.js'></script>
+	</body>
 </html>

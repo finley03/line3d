@@ -1,5 +1,20 @@
 let build = "0.7";
-document.getElementById("title").innerHTML = "line3d " + build;
+var titles=document.getElementsByClassName("title");
+for (var a=0; a<titles.length; a++) {
+	titles[a].innerHTML = "line3d " + build; // yeah its painful alright...
+}
+
+function showcredits(){
+    var cred = document.getElementById('creditwrap');
+    if ( cred.style.display !== 'none' ) {
+        cred.style.display = 'none';
+    } else {
+        cred.style.display = 'block';
+    }
+}
+document.getElementById('title').addEventListener("click",function(){showcredits()},false);
+document.getElementById('credits').addEventListener("click",function(){showcredits()},false);
+
 
 // objects
 
