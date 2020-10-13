@@ -4,8 +4,10 @@ Initially you would enter parameters for the object, and this would be transform
 I quickly realised the multiplying floating point errors would make it unusable, so I rewrote much of it to use absolute position relative to the center of the canvas.
 
 Perspective is NOW accurate.
-Now has multi object support, although objects can only exist at 0,0,0 on the coordinate system.
+Now has multi object support.
+Both objects and camera now have 6 degrees of freedom
 Basic options menu being worked on.
+mouse controls now enabled
 
 Code contributors:
 HarriXS

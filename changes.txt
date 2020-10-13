@@ -7,3 +7,5 @@ Changed 3d projection code to enable accurate perspective. also enables camera p
 Added multi object support and coordinate system display. Each object now contains its own color information as well as position and rotation information. (10/10/2020) v0.6
 Removed unnecessary variables (10/10/2020) v0.6.1
 Merged pull request from HarriXS that added side options menu framework and some basic options (10/10/2020) v0.6.2
+Added full freedom of movement and rotation for objects and camera + base plane (10/10/2020) v0.7
+Added mouse controls (scroll to zoom, middle click & drag to revolve) and code for credits/info screen (13/10/2020) v0.7.1
