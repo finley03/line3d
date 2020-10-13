@@ -102,7 +102,6 @@ class Objects {
 
         this.setValues();
         this.setScale();
-        this.createButtons();
     }
 
 
@@ -134,15 +133,33 @@ class Objects {
 
     // create buttons based on objects in class
 
-    createButtons() {
+    createButtons(displayObject) {
         for (let shape in this.shapes) {
             let button = document.createElement("button");
             button.type = "button";
-            button.innerHTML = this.shapes[shape].name;
             button.className = "objButton";
-            button.addEventListener("click", function(){setObjectType( shape )}, false);
+            //button.addEventListener("click", function(){setObjectType( shape )}, false);
             let element = document.getElementById("buttons");
             element.appendChild(button);
+
+            let label = document.createElement("label");
+            label.className = "checkboxContainer";
+            label.innerHTML = this.shapes[shape].name;
+            label.addEventListener("mousedown", function() {toggleObject(shape)}, false);
+            button.appendChild(label);
+            
+            let input = document.createElement("input");
+            input.type = "checkbox";
+            if (displayObject.includes(shape) || shape == "base") {
+                input.checked = true;
+            } else {
+                input.checked = false;
+            }
+            label.appendChild(input);
+
+            let span = document.createElement("span");
+            span.className = "objectCheckmark";
+            label.appendChild(span);
         }
     }
 
@@ -232,7 +249,7 @@ optionspanel = new OptionsPanel();
 
 
 
-let displayObject = ['wf_cube', 'sq_pyramid', 'cube'];
+let displayObject = ["cube"];
 let frameRate = 60;
 let startCameraPosition = [15,0,0];
 let cameraDirection = [0,0,0];
@@ -264,6 +281,8 @@ let deltaX = 0;
 let deltaY = 0;
 let thetaX = 0;
 let thetaY = 0;
+
+objects.createButtons(displayObject);
 
 
 optionspanel.addCheckbox("Rotation", "rotationCheckBox", toggleRotation, false);
@@ -557,11 +576,19 @@ function drawCsys(transformedObject,objectInstructions,color) {
 
 
 
-
+// currently obsolete
 function setObjectType(type) {
     displayObject[0] = type;
     object = objects.shapes[type].points;
     objectInstructions = objects.shapes[type].instructions;
+}
+
+function toggleObject(type) {
+    if (displayObject.includes(type)) {
+        displayObject.splice(displayObject.indexOf(type), 1);
+    } else {
+        displayObject.push(type);
+    }
 }
 
 // allows for page to be loaded on set object other than default
