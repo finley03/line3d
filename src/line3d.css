@@ -63,6 +63,8 @@ body {
     background-color: var(--button-pressed);
 }
 
+/*options menu*/
+
 #optionsSidebar {
     z-index: 1;
     height: 40%;
@@ -205,4 +207,76 @@ body {
     top: 0;
     left: 0;
     background-color: var(--background);
+}
+
+/*credits and info*/
+
+#creditwrap {
+	z-index: 2;
+}
+
+#credits {
+	z-index: 3;
+	position: fixed;
+	top: 0;
+	bottom: 0;
+	left: 0;
+	right: 0;
+	background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAIAAABLbSncAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAAeSURBVBhXY1i1apUKNsAApTEAigSybtw6aG6HigoAbHMhSW4Jt0QAAAAASUVORK5CYIIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==');
+	opacity: .2;
+}
+
+#boxwrap {
+	box-sizing: border-box;
+	z-index: 4;
+	width: 600px;
+	min-height: 400px;
+	position: absolute;
+	left: 50%;
+	top: 50%;
+	transform: translate(-50%,-50%);
+
+	background-color: var(--background);
+	border: 1px solid #777777;
+	padding: 70px 70px;
+}
+
+#boxwrap .title {
+	text-align: center;
+	font-size: 25px;
+	font-style: italic;
+}
+
+#boxwrap #authcont {
+	display: flex;
+	justify-content: center;
+}
+
+#boxwrap #authcont p {
+	margin: 15px;
+	font-size: 1em;
+}
+
+#boxwrap #authcont p:first-child::before {
+	content: "by:";
+	position: relative;
+	left: -10px;
+	color: var(--button-pressed);
+	font-style: italic;
+}
+
+#boxwrap #linkcont a {
+	display: block;
+	padding: 2px;
+	text-decoration: underline solid var(--button-pressed);
+	text-align: center;
+	color: var(--text);
+}
+
+#linkcont {
+	margin-top: 60px;
+}
+
+#title:hover {
+	text-decoration: underline;
 }

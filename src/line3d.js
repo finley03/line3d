@@ -1,14 +1,31 @@
-let build = "0.7";
+let build = "0.7.1";
 document.getElementById("title").innerHTML = "line3d " + build;
 
-// objects
+function showcredits(){
+    let cred = document.getElementById("creditwrap");
+    if ( cred.style.display != "none" ) {
+        cred.style.display = "none";
+    } else {
+        cred.style.display = "block";
+    }
+}
+document.getElementById('title').addEventListener("click",function(){showcredits()},false);
+document.getElementById('credits').addEventListener("click",function(){showcredits()},false);
+
+
+
+
+//----------OBJECT CLASSES----------//
+
+
+
 
 class Objects {
     constructor() {
         this.originalShapes = {
             get getShapes() {
                 return {
-                    base: { // base plane MUST stay as first shape
+                    base: { // base plane MUST stay as first shape (I think I haven't checked recently)
                         name: "Plane",
                         color: "#707070",
                         position: [0,0,-2],
@@ -144,6 +161,14 @@ class Objects {
     }
 }
 
+
+
+
+//----------OPTIONS SETUP SCRIPT----------//
+
+
+
+
 // TODO: Multiple object support
 class OptionsPanel {
     constructor() {
@@ -199,12 +224,18 @@ class OptionsPanel {
 objects = new Objects();
 optionspanel = new OptionsPanel();
 
-// define variables and constants
+
+
+
+//-----------DEFINE VARIABLES----------//
+
+
+
 
 let displayObject = ['wf_cube', 'sq_pyramid', 'cube'];
 let frameRate = 60;
-let cameraPosition = [8,-6.713,5];
-let cameraDirection = [0,-30,-40];
+let startCameraPosition = [15,0,0];
+let cameraDirection = [0,0,0];
 let planePosition = [-7,0,0]; // first value is perspective level, must be negative. smaller number = more perspective
 let showCsys = false;
 let showPlane = true;
@@ -217,24 +248,80 @@ let intermediateMatrix = [[],[],[]];
 let compoundMatrix = [[],[],[]];
 let cameraIntermediateMatrix = [[],[],[]];
 let cameraCompoundMatrix = [[],[],[]];
+let revolveMatrix = [[],[],[]];
 let transformedObject = new Array(object.length); for (let n=0; n<objects.shapes["base"].points.length; n++) { transformedObject[n] = new Array(3); }
 let perspectiveObject = new Array(object.length); for (let n=0; n<transformedObject.length; n++) { perspectiveObject[n] = new Array(3); }
 let csysPerspectiveObject = new Array(object.length); for (let n=0; n<perspectiveObject.length; n++) { csysPerspectiveObject[n] = new Array(3); }
 let transformedPerspectiveObject = new Array(object.length); for (let n=0; n<perspectiveObject.length; n++) { transformedPerspectiveObject[n] = new Array(3); }
 let rotate = false;
+let revolve = false;
+let cameraPosition = []; for (v in startCameraPosition) {cameraPosition[v] = startCameraPosition[v]};
+let mouseX = 0;
+let mouseY = 0;
+let currentMouseX = 0;
+let currentMouseY = 0;
+let deltaX = 0;
+let deltaY = 0;
+let thetaX = 0;
+let thetaY = 0;
+
 
 optionspanel.addCheckbox("Rotation", "rotationCheckBox", toggleRotation, false);
 optionspanel.addCheckbox("Csys Display", "csysCheckbox", toggleCsys, false);
 optionspanel.addCheckbox("Base Plane", "baseplaneCheckbox", toggleBase, true);
 
-// setup event listeners
-let button = document.getElementById("optionsButton");
-button.addEventListener("click", function(){toggleSideBar()}, false);
-
 // setup canvas context
 
 let canvas = document.getElementById("object");
 let ctx = canvas.getContext("2d");
+
+// setup event listeners
+
+let button = document.getElementById("optionsButton");
+button.addEventListener("click", function(){toggleSideBar()}, false);
+
+// add window resize listener
+
+window.addEventListener("resize", function() {
+    setCanvas();
+    objects.setScale();
+})
+
+// add zoom
+
+window.addEventListener("wheel", function() {
+    let delta = Math.sign(window.event.deltaY);
+    scale = 1.025+(delta*0.225)
+    cameraPosition = [cameraPosition[0]*scale,cameraPosition[1]*scale,cameraPosition[2]*scale];
+    startCameraPosition = [startCameraPosition[0]*scale,startCameraPosition[1]*scale,startCameraPosition[2]*scale];
+})
+
+canvas.addEventListener("mousedown", function(e) {
+    if (e.button == 1) {
+        console.log("mousedown")
+        revolve = true;
+        mouseX = e.screenX;
+        mouseY = e.screenY;
+        currentMouseX = e.screenX;
+        currentMouseY = e.screenY;
+        console.log(e.screenX);
+        console.log(e.screenY);
+    }
+})
+
+window.addEventListener("mouseup", function(e) {
+    if (e.button == 1) {
+        revolve = false;
+        console.log("mouseup");
+    }
+})
+
+canvas.addEventListener("mousemove", function(e) {
+    if (revolve == true) {
+        currentMouseX = e.screenX;
+        currentMouseY = e.screenY;
+    }
+})
 
 // setup canvas properties
 
@@ -244,18 +331,15 @@ function setCanvas() {
     ctx.beginPath();
 }
 
-// add window resize listener
-
-window.addEventListener("resize", function() {
-    setCanvas();
-    objects.setScale();
-})
-
-
-
 setCanvas();
 
-// run transformation routine
+
+
+
+//----------LINEAR TRANSFORMATIONS AND DRAW ON CANVAS----------//
+
+
+
 
 drawLoop();
 
@@ -283,6 +367,10 @@ function drawLoop() {
             draw(object,objectInstructions,objects.shapes[id].color,id);
         }
  
+        if (revolve == true) {
+            revolves()
+        }
+
         drawLoop()
     }, (1000/frameRate));
 }
@@ -462,7 +550,13 @@ function drawCsys(transformedObject,objectInstructions,color) {
 
 }
 
-// runs when button pressed
+
+
+
+//----------MISC FUNCTIONS----------//
+
+
+
 
 function setObjectType(type) {
     displayObject[0] = type;
@@ -506,4 +600,42 @@ function toggleCsys() {
 
 function toggleBase() {
     showPlane = !showPlane;
+}
+
+
+
+
+//----------CAMERA REVOLVE SCRIPT---------//
+
+
+
+
+function revolves() {
+
+    console.log("revolve");
+
+    
+
+    deltaX = mouseX - currentMouseX
+    deltaY = mouseY - currentMouseY
+    mouseX = currentMouseX;
+    mouseY = currentMouseY;
+    thetaZ = (deltaX/objects.scale)*30
+    thetaY = (deltaY/objects.scale)*30
+
+    cameraDirection[1] = cameraDirection[1] + thetaY
+    cameraDirection[2] = cameraDirection[2] + thetaZ
+
+    yRevolveMatrix = [[Math.cos(cameraDirection[1]*Math.PI/180),0,-Math.sin(cameraDirection[1]*Math.PI/180)],[0,1,0],[Math.sin(cameraDirection[1]*Math.PI/180),0,Math.cos(cameraDirection[1]*Math.PI/180)]];
+    zRevolveMatrix = [[Math.cos(cameraDirection[2]*Math.PI/180),Math.sin(cameraDirection[2]*Math.PI/180),0],[-Math.sin(cameraDirection[2]*Math.PI/180),Math.cos(cameraDirection[2]*Math.PI/180),0],[0,0,1]];
+
+    for (let j=0; j<zRevolveMatrix.length; j++) {
+        for (let k=0; k<zRevolveMatrix[0].length; k++) {
+            revolveMatrix[j][k] = yRevolveMatrix[j][0]*zRevolveMatrix[0][k]+yRevolveMatrix[j][1]*zRevolveMatrix[1][k]+yRevolveMatrix[j][2]*zRevolveMatrix[2][k];
+        }
+    }
+
+    for (let k=0; k<cameraPosition.length; k++) {
+        cameraPosition[k] = startCameraPosition[0]*revolveMatrix[0][k]+startCameraPosition[1]*revolveMatrix[1][k]+startCameraPosition[2]*revolveMatrix[2][k];
+    }
 }

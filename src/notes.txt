@@ -7,6 +7,7 @@ Perspective is NOW accurate.
 Now has multi object support.
 Both objects and camera now have 6 degrees of freedom
 Basic options menu being worked on.
+mouse controls now enabled
 
 Code contributors:
 HarriXS
