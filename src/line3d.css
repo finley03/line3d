@@ -42,7 +42,7 @@ body {
     background-color: var(--button-background);
     border: none;
     color: var(--text);
-    padding: 15px 32px;
+    padding: 15px 40px;
     margin: 2px 4px;
     border-radius: 2px;
 }
@@ -100,11 +100,14 @@ body {
 }
 
 .checkmark {
+    background-color: var(--button-pressed);
+}
+
+.checkboxContainer .checkmark {
     position: absolute;
     left: 100px;
     height: 15px;
     width: 15px;
-    background-color: var(--button-pressed);
 }
 
 .checkboxContainer {
@@ -279,4 +282,42 @@ body {
 
 #title:hover {
 	text-decoration: underline;
+}
+
+.checkboxContainer .objectCheckmark {
+    position: absolute;
+    right: -30px;
+    height: 15px;
+    width: 15px;
+}
+
+.objButton label {
+    position: relative;
+    right: 15px;
+    top: 0px;
+}
+
+.objectCheckmark {
+    background-color: var(--button-pressed);
+}
+
+.checkboxContainer:hover input ~ .objectCheckmark {
+    background-color: #606060;
+}
+
+/*change the colour of the checkbox when checked over*/
+.checkboxContainer input:checked ~ .objectCheckmark {
+    background-color: #707070;
+}
+
+.objectCheckmark:after {
+    content: "x";
+    position: absolute;
+    left: 4px;
+    bottom: 1px;
+    display: none;
+}
+
+.checkboxContainer input:checked ~ .objectCheckmark:after {
+    display: block;
 }
