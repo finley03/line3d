@@ -14,6 +14,13 @@ Currently the objects and camera have full freedom of movement
 
 You can also add extra objects to display. Examples in line3d.js
 
+### Controls
+
+* scroll to zoom
+* middle click + drag to revolve
+* select objects with buttons at the botton
+* press 't' to enter translate mode
+
 ### Current Features
 
 * some mouse controls
