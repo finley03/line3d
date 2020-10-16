@@ -1,4 +1,4 @@
-let build = "0.7.1";
+let build = "0.7.2";
 document.getElementById("title").innerHTML = "line3d " + build;
 
 function showcredits(){
@@ -233,6 +233,7 @@ optionspanel = new OptionsPanel();
 
 
 let displayObject = ['wf_cube', 'sq_pyramid', 'cube'];
+let focusObject = null
 let frameRate = 60;
 let startCameraPosition = [15,0,0];
 let cameraDirection = [0,0,0];
@@ -264,6 +265,17 @@ let deltaX = 0;
 let deltaY = 0;
 let thetaX = 0;
 let thetaY = 0;
+let center = true;
+let objectTranslate = false;
+let csysInfo = [];
+let csysWidth = {csysX: 3,csysY: 3, csysZ: 3};
+let coordinateDisplacement = {csysX: 0,csysY: 0, csysZ: 0};
+let translating = false;
+let minDisplacement = 25;
+let translateAxis = null;
+let csysVector = [];
+let mouseVector = [];
+let translateFactor = null;
 
 
 optionspanel.addCheckbox("Rotation", "rotationCheckBox", toggleRotation, false);
@@ -296,32 +308,75 @@ window.addEventListener("wheel", function() {
     startCameraPosition = [startCameraPosition[0]*scale,startCameraPosition[1]*scale,startCameraPosition[2]*scale];
 })
 
-canvas.addEventListener("mousedown", function(e) {
-    if (e.button == 1) {
-        console.log("mousedown")
+canvas.addEventListener("mousedown", function(event) {
+    if (event.button == 1) {
         revolve = true;
-        mouseX = e.screenX;
-        mouseY = e.screenY;
-        currentMouseX = e.screenX;
-        currentMouseY = e.screenY;
-        console.log(e.screenX);
-        console.log(e.screenY);
+        mouseX = event.clientX;
+        mouseY = event.clientY;
+        currentMouseX = event.clientX;
+        currentMouseY = event.clientY;
+    }
+
+    // object translation
+
+    if (event.button == 0) {
+        if (objectTranslate == true) {
+            mouseX = event.clientX;
+            mouseY = event.clientY;
+            currentMouseX = event.clientX;
+            currentMouseY = event.clientY;
+            translating = true
+            for (s in csysInfo) {
+                if (coordinateDisplacement[s] <= minDisplacement) {
+                    minDisplacement = coordinateDisplacement[s]
+                    translateAxis = s;
+                }
+            }
+            minDisplacement = 25
+        }
     }
 })
 
-window.addEventListener("mouseup", function(e) {
-    if (e.button == 1) {
+window.addEventListener("mouseup", function(event) {
+    if (event.button == 1) {
         revolve = false;
-        console.log("mouseup");
+    }
+    if (event.button == 0) {
+        if (objectTranslate == true) {
+            translating = false
+        }
     }
 })
 
-canvas.addEventListener("mousemove", function(e) {
-    if (revolve == true) {
-        currentMouseX = e.screenX;
-        currentMouseY = e.screenY;
+canvas.addEventListener("mousemove", function(event) {
+    if (revolve == true || objectTranslate == true) {
+        currentMouseX = event.clientX;
+        currentMouseY = event.clientY;
+    }
+    if (objectTranslate == true) {
+        for (s in csysInfo) {
+            coordinateDisplacement[s] = Math.abs(Math.sqrt(Math.pow((csysInfo[s][1][0]+(ctx.canvas.width/2))-currentMouseX,2)+Math.pow((-csysInfo[s][1][1]+(ctx.canvas.height/2))-currentMouseY,2)));
+            if (coordinateDisplacement[s] <= 25) {
+                csysWidth[s] = 5
+            } else {
+                csysWidth[s] = 3
+            }
+
+        }
     }
 })
+
+window.addEventListener("keydown", function(event) {
+    if (event.key == "t") {
+        objectTranslate = !objectTranslate
+    }
+    if (event.key == "Escape") {
+        objectTranslate = false
+        focusObject = null
+    }
+})
+
+
 
 // setup canvas properties
 
@@ -329,6 +384,7 @@ function setCanvas() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
     ctx.beginPath();
+    ctx.lineCap = "round";
 }
 
 setCanvas();
@@ -347,28 +403,56 @@ function drawLoop() {
     setTimeout(function() {
         
         ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+        ctx.lineWidth = 1.5;
         if (showPlane == true) {
-            id = "base"
-            object = objects.shapes[id].points;
-            objectInstructions = objects.shapes[id].instructions;
-            draw(object,objectInstructions,objects.shapes[id].color,id);
+            id = "base";
+            if (focusObject != id) {
+                object = objects.shapes[id].points;
+                objectInstructions = objects.shapes[id].instructions;
+                draw(object,objectInstructions,objects.shapes[id].color,id);
+            }
         }
         if (showCsys == true) {
             for(c in objects.csysShapes) {
+                id = null;
+                center = true;
                 object = objects.csysShapes[c].points;
                 objectInstructions = objects.csysShapes[c].instructions;
-                drawCsys(object,objectInstructions,objects.csysShapes[c].color);
+                drawCsys(object,objectInstructions,objects.csysShapes[c].color,id,center);
             }
         }
         for(let o=0; o<displayObject.length; o++) {
             id = displayObject[o];
+            if (focusObject != id) {
+                object = objects.shapes[id].points;
+                objectInstructions = objects.shapes[id].instructions;
+                draw(object,objectInstructions,objects.shapes[id].color,id);
+            }
+        }
+        if (focusObject != null) {
+            id = focusObject;
             object = objects.shapes[id].points;
             objectInstructions = objects.shapes[id].instructions;
+            ctx.lineWidth = 4;
             draw(object,objectInstructions,objects.shapes[id].color,id);
+            if (objectTranslate == true) {
+                for(c in objects.csysShapes) {
+                    center = false;
+                    object = objects.csysShapes[c].points;
+                    objectInstructions = objects.csysShapes[c].instructions;
+                    //ctx.lineWidth = 3;
+                    ctx.lineWidth = csysWidth[c];
+                    drawCsys(object,objectInstructions,objects.csysShapes[c].color,id,center,c);
+                }
+            }
         }
+
  
         if (revolve == true) {
-            revolves()
+            revolves();
+        }
+        if (translating == true) {
+            translateObject();
         }
 
         drawLoop()
@@ -495,11 +579,21 @@ function draw(object,objectInstructions,color,id) {
 
 // draws csys
 
-function drawCsys(transformedObject,objectInstructions,color) {
+function drawCsys(object,objectInstructions,color,id,center,csys) {
 
     xCameraMatrix = [[1,0,0],[0,Math.cos(cameraDirection[0]*Math.PI/180),-Math.sin(cameraDirection[0]*Math.PI/180)],[0,Math.sin(cameraDirection[0]*Math.PI/180),Math.cos(cameraDirection[0]*Math.PI/180)]];
     yCameraMatrix = [[Math.cos(cameraDirection[1]*Math.PI/180),0,Math.sin(cameraDirection[1]*Math.PI/180)],[0,1,0],[-Math.sin(cameraDirection[1]*Math.PI/180),0,Math.cos(cameraDirection[1]*Math.PI/180)]];
     zCameraMatrix = [[Math.cos(cameraDirection[2]*Math.PI/180),-Math.sin(cameraDirection[2]*Math.PI/180),0],[Math.sin(cameraDirection[2]*Math.PI/180),Math.cos(cameraDirection[2]*Math.PI/180),0],[0,0,1]];
+
+    // transalate csys
+
+    if (center == false) {
+        for (let t=0; t<object.length; t++) {
+            transformedObject[t] = [object[t][0]+(objects.shapes[id].position[0]*objects.scale), object[t][1]+(objects.shapes[id].position[1]*objects.scale), object[t][2]+(objects.shapes[id].position[2]*objects.scale)]
+        }
+    } else {
+        for (v in object) { for (w in object){ transformedObject[v][w] = object[v][w]; }};
+    }
 
     // old perspective code (for reference)
 
@@ -546,6 +640,10 @@ function drawCsys(transformedObject,objectInstructions,color) {
         ctx.lineTo(perspectiveObject[objectInstructions[i][1]][0]+(ctx.canvas.width/2), -perspectiveObject[objectInstructions[i][1]][1]+(ctx.canvas.height/2));
     }
 
+    if (center == false) {
+        csysInfo[csys] = [perspectiveObject[0],perspectiveObject[1]];
+    }
+
     ctx.stroke();
 
 }
@@ -559,9 +657,11 @@ function drawCsys(transformedObject,objectInstructions,color) {
 
 
 function setObjectType(type) {
-    displayObject[0] = type;
-    object = objects.shapes[type].points;
-    objectInstructions = objects.shapes[type].instructions;
+    if (focusObject == type) {
+        focusObject = null;
+    } else {
+        focusObject = type;
+    }
 }
 
 // allows for page to be loaded on set object other than default
@@ -611,13 +711,8 @@ function toggleBase() {
 
 
 function revolves() {
-
-    console.log("revolve");
-
-    
-
-    deltaX = mouseX - currentMouseX
-    deltaY = mouseY - currentMouseY
+    deltaX = mouseX - currentMouseX;
+    deltaY = mouseY - currentMouseY;
     mouseX = currentMouseX;
     mouseY = currentMouseY;
     thetaZ = (deltaX/objects.scale)*30
@@ -637,5 +732,34 @@ function revolves() {
 
     for (let k=0; k<cameraPosition.length; k++) {
         cameraPosition[k] = startCameraPosition[0]*revolveMatrix[0][k]+startCameraPosition[1]*revolveMatrix[1][k]+startCameraPosition[2]*revolveMatrix[2][k];
+    }
+}
+
+
+
+
+//----------OBJECT MANIPULATION SCRIPTS----------//
+
+
+
+
+function translateObject() {
+    deltaX = currentMouseX - mouseX;
+    deltaY = mouseY - currentMouseY;
+    mouseX = currentMouseX;
+    mouseY = currentMouseY;
+
+    csysVector = [csysInfo[translateAxis][1][0]-csysInfo[translateAxis][0][0],csysInfo[translateAxis][1][1]-csysInfo[translateAxis][0][1]];
+
+    translateFactor = (((csysVector[0]*deltaX)+(csysVector[1]*deltaY))/(Math.pow(csysVector[0],2)+Math.pow(csysVector[1],2)))/2;
+
+    if (translateAxis == "csysX") {
+        objects.shapes[focusObject].position[0] += translateFactor
+    }
+    if (translateAxis == "csysY") {
+        objects.shapes[focusObject].position[1] += translateFactor
+    }
+    if (translateAxis == "csysZ") {
+        objects.shapes[focusObject].position[2] += translateFactor
     }
 }
