@@ -1,4 +1,4 @@
-let build = "0.7.2";
+let build = "0.7.3";
 document.getElementById("title").innerHTML = "line3d " + build;
 
 function showcredits(){
@@ -271,7 +271,7 @@ let csysInfo = [];
 let csysWidth = {csysX: 3,csysY: 3, csysZ: 3};
 let coordinateDisplacement = {csysX: 0,csysY: 0, csysZ: 0};
 let translating = false;
-let minDisplacement = 25;
+let minDisplacement = 30;
 let translateAxis = null;
 let csysVector = [];
 let mouseVector = [];
@@ -326,13 +326,6 @@ canvas.addEventListener("mousedown", function(event) {
             currentMouseX = event.clientX;
             currentMouseY = event.clientY;
             translating = true
-            for (s in csysInfo) {
-                if (coordinateDisplacement[s] <= minDisplacement) {
-                    minDisplacement = coordinateDisplacement[s]
-                    translateAxis = s;
-                }
-            }
-            minDisplacement = 25
         }
     }
 })
@@ -353,16 +346,19 @@ canvas.addEventListener("mousemove", function(event) {
         currentMouseX = event.clientX;
         currentMouseY = event.clientY;
     }
-    if (objectTranslate == true) {
+    if (objectTranslate == true && translating == false) {
+        translateAxis = null
         for (s in csysInfo) {
             coordinateDisplacement[s] = Math.abs(Math.sqrt(Math.pow((csysInfo[s][1][0]+(ctx.canvas.width/2))-currentMouseX,2)+Math.pow((-csysInfo[s][1][1]+(ctx.canvas.height/2))-currentMouseY,2)));
-            if (coordinateDisplacement[s] <= 25) {
-                csysWidth[s] = 5
-            } else {
-                csysWidth[s] = 3
+            if (coordinateDisplacement[s] <= minDisplacement) {
+                minDisplacement = coordinateDisplacement[s]
+                translateAxis = s;
             }
-
+            csysWidth[s] = 3;
         }
+
+        csysWidth[translateAxis] = 5;
+        minDisplacement = 30;
     }
 })
 
@@ -440,18 +436,16 @@ function drawLoop() {
                     center = false;
                     object = objects.csysShapes[c].points;
                     objectInstructions = objects.csysShapes[c].instructions;
-                    //ctx.lineWidth = 3;
                     ctx.lineWidth = csysWidth[c];
                     drawCsys(object,objectInstructions,objects.csysShapes[c].color,id,center,c);
                 }
             }
         }
 
- 
         if (revolve == true) {
             revolves();
         }
-        if (translating == true) {
+        if (translating == true && translateAxis != null) {
             translateObject();
         }
 

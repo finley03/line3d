@@ -10,3 +10,4 @@ Merged pull request from HarriXS that added side options menu framework and some
 Added full freedom of movement and rotation for objects and camera + base plane (10/10/2020) v0.7
 Added mouse controls (scroll to zoom, middle click & drag to revolve) and code for credits/info screen (13/10/2020) v0.7.1
 Added object selection and the ability to translate objects by dragging the csys that appears in the center (16/10/2020) v0.7.2
+Minor changes to object translation. fixed so now only one csys axis can highlight at once (16/10/2020) v0.7.3
