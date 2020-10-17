@@ -6,7 +6,7 @@ I quickly realised the multiplying floating point errors would make it unusable,
 Perspective is NOW accurate.
 Now has multi object support.
 Both objects and camera now have 6 degrees of freedom
-Basic options menu being worked on.
+Basic options menus being worked on.
 mouse controls now enabled
 
 Code contributors:

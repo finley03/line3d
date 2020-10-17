@@ -47,4 +47,4 @@ You can also add extra objects to display. Examples in line3d.js
 
 more if I have the time
 
-Version 0.7.3
+Version 0.7.4
