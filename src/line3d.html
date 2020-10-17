@@ -5,6 +5,9 @@
         <link rel="stylesheet" href="line3d.css">
     </head>
     <body>
+
+		<!--credits-->		
+
         <div id="creditwrap" style="display:none;">
 			<div id="credits"></div>
 			<div id="boxwrap">
@@ -19,14 +22,29 @@
 				</div>
 			</div>
 		</div>
-        <h1 id=title></h1>
+		<h1 id=title></h1>
+		
+		<!--canvas-->
+
         <canvas id='object' width='500' height='500'></canvas>
 
-        <div id="optionsSidebar">
-            <h2 id="optionsTitle">Options</h2>
-            <div class="options" id="options"></div>
+		<!--right options menu-->
+
+        <div class="optionsMenu" id="rightOptionsSidebar">
+            <h2 id="rightOptionsTitle">Display Options</h2>
+            <div class="options" id="rightOptions"></div>
 		</div>
-		<button class="objButton" id="optionsButton"><</button>
+		<button class="objButton" id="rightOptionsButton"><</button>
+
+		<!--left options menu-->
+		
+		<div class="optionsMenu" id="leftOptionsSidebar">
+            <h2 id="leftOptionsTitle">Objects</h2>
+            <div class="options" id="leftOptions"></div>
+		</div>
+		<button class="objButton" id="leftOptionsButton">></button>
+
+		<!--bottom buttons-->
 
         <div id="buttons"></div>
         <script src='line3d.js'></script>

@@ -1,4 +1,4 @@
-let build = "0.7.3";
+let build = "0.7.4";
 document.getElementById("title").innerHTML = "line3d " + build;
 
 function showcredits(){
@@ -27,6 +27,7 @@ class Objects {
                 return {
                     base: { // base plane MUST stay as first shape (I think I haven't checked recently)
                         name: "Plane",
+                        display: true,
                         color: "#707070",
                         position: [0,0,-2],
                         theta: [0,0,0],
@@ -36,6 +37,7 @@ class Objects {
                     },
                     cube: {
                         name:"Cube",
+                        display: true,
                         color: "#aaaaaa",
                         position: [4,0,0],
                         theta: [0,0,0],
@@ -45,6 +47,7 @@ class Objects {
                     },
                     wf_cube: {
                         name:"Wireframe Cube",
+                        display: false,
                         color: "#aa2020",
                         position: [-2,-2,0],
                         theta: [0,0,0],
@@ -54,6 +57,7 @@ class Objects {
                     },
                     sq_pyramid: {
                         name:"Pyramid",
+                        display: false,
                         color: "#00aa00",
                         position: [0,2,-0.4],
                         theta: [0,0,0],
@@ -63,6 +67,7 @@ class Objects {
                     },
                     line: {
                         name:"Line",
+                        display: false,
                         color: "#3030aa",
                         position: [0,0,0],
                         theta: [0,0,0],
@@ -170,10 +175,10 @@ class Objects {
 
 
 // TODO: Multiple object support
-class OptionsPanel {
+class rightOptionsPanel {
     constructor() {
-        this.sidebar = document.getElementById("optionsSidebar");
-        this.options = document.getElementById("options");
+        this.sidebar = document.getElementById("rightOptionsSidebar");
+        this.options = document.getElementById("rightOptions");
     }
 
     addCheckbox(displayName, idName, func, checked = false) {
@@ -221,8 +226,62 @@ class OptionsPanel {
     }
 }
 
+class leftOptionsPanel {
+    constructor() {
+        this.sidebar = document.getElementById("leftOptionsSidebar");
+        this.options = document.getElementById("leftOptions");
+    }
+
+    addCheckbox(displayName, idName, func, checked = false) {
+        let label = document.createElement("label");
+        label.className = "checkboxContainer";
+        label.id = idName;
+        label.innerHTML = displayName;
+        label.addEventListener("mousedown", func, false)
+        this.options.appendChild(label);
+        
+        let input = document.createElement("input");
+        input.type = "checkbox";
+        input.checked = checked;
+        label.appendChild(input);
+
+        let span = document.createElement("span");
+        span.className = "checkmark";
+        label.appendChild(span);
+    }
+
+    addSlider(displayName, idName, func, min = 1, max = 100, value = 50, step = 1) {
+        let div = document.createElement("div");
+        div.className = "sliderContainer";
+        div.innerHTML = displayName;
+        this.options.appendChild(div);
+        
+        let input = document.createElement("input");
+        input.type = "range";
+        input.min = min;
+        input.max = max;
+        input.value = value;    // for some reason, this will always round to the nearest integer (I'll look into a fix at some point)
+        input.step = step;
+        input.className = "slider";
+        input.id = idName;
+        div.appendChild(input);
+
+        let content = document.createElement("div");
+        content.innerHTML = document.getElementById(idName).value;
+        div.appendChild(content);
+
+        input.oninput = function() {
+            content.innerHTML = this.value;
+            //content.id = this.value
+            func(this.value);
+        }
+    }
+}
+
+
 objects = new Objects();
-optionspanel = new OptionsPanel();
+rightoptionspanel = new rightOptionsPanel();
+leftoptionspanel = new leftOptionsPanel();
 
 
 
@@ -232,9 +291,9 @@ optionspanel = new OptionsPanel();
 
 
 
-let displayObject = ['wf_cube', 'sq_pyramid', 'cube'];
+let displayObject = ['base']; //['base','wf_cube','sq_pyramid','cube'];
 let focusObject = null
-let frameRate = 60;
+let frameRate = 30;
 let startCameraPosition = [15,0,0];
 let cameraDirection = [0,0,0];
 let planePosition = [-7,0,0]; // first value is perspective level, must be negative. smaller number = more perspective
@@ -278,9 +337,15 @@ let mouseVector = [];
 let translateFactor = null;
 
 
-optionspanel.addCheckbox("Rotation", "rotationCheckBox", toggleRotation, false);
-optionspanel.addCheckbox("Csys Display", "csysCheckbox", toggleCsys, false);
-optionspanel.addCheckbox("Base Plane", "baseplaneCheckbox", toggleBase, true);
+rightoptionspanel.addCheckbox("Rotation", "rotationCheckBox", toggleRotation, false);
+rightoptionspanel.addCheckbox("Csys Display", "csysCheckbox", toggleCsys, false);
+//rightoptionspanel.addCheckbox("Base Plane", "baseplaneCheckbox", toggleBase, true);
+
+//leftoptionspanel.addCheckbox("Csys Display", "csysCheckbox", toggleCsys, false)
+
+for (o in objects.shapes) {
+    leftoptionspanel.addCheckbox(objects.shapes[o].name, o, toggleObject, objects.shapes[o].display)
+}
 
 // setup canvas context
 
@@ -289,8 +354,11 @@ let ctx = canvas.getContext("2d");
 
 // setup event listeners
 
-let button = document.getElementById("optionsButton");
-button.addEventListener("click", function(){toggleSideBar()}, false);
+let rightButton = document.getElementById("rightOptionsButton");
+rightButton.addEventListener("click", function(){toggleRightSideBar()}, false);
+
+let leftButton = document.getElementById("leftOptionsButton");
+leftButton.addEventListener("click", function(){toggleLeftSideBar()}, false);
 
 // add window resize listener
 
@@ -400,14 +468,14 @@ function drawLoop() {
         
         ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
         ctx.lineWidth = 1.5;
-        if (showPlane == true) {
-            id = "base";
-            if (focusObject != id) {
-                object = objects.shapes[id].points;
-                objectInstructions = objects.shapes[id].instructions;
-                draw(object,objectInstructions,objects.shapes[id].color,id);
-            }
-        }
+        // if (showPlane == true) {
+        //     id = "base";
+        //     if (focusObject != id) {
+        //         object = objects.shapes[id].points;
+        //         objectInstructions = objects.shapes[id].instructions;
+        //         draw(object,objectInstructions,objects.shapes[id].color,id);
+        //     }
+        // }
         if (showCsys == true) {
             for(c in objects.csysShapes) {
                 id = null;
@@ -417,9 +485,10 @@ function drawLoop() {
                 drawCsys(object,objectInstructions,objects.csysShapes[c].color,id,center);
             }
         }
-        for(let o=0; o<displayObject.length; o++) {
-            id = displayObject[o];
-            if (focusObject != id) {
+        for(id in objects.shapes) {
+        //for(let o=0; o<displayObject.length; o++) {
+            //id = displayObject[o];
+            if (focusObject != id && objects.shapes[id].display == true) {
                 object = objects.shapes[id].points;
                 objectInstructions = objects.shapes[id].instructions;
                 draw(object,objectInstructions,objects.shapes[id].color,id);
@@ -664,23 +733,67 @@ if (window.location.hash.substr(1)) {
     setObjectType(window.location.hash.substr(1))
 }
 
-function openSideBar() {
-    document.getElementById("optionsSidebar").style.width = "300px";
-    document.getElementById("optionsButton").textContent = ">";
-    document.getElementById("optionsButton").style.right = "300px";
+// function openRightSideBar() {
+//     document.getElementById("rightOptionsSidebar").style.width = "250px";
+//     document.getElementById("rightOptionsButton").textContent = ">";
+//     document.getElementById("rightOptionsButton").style.right = "250px";
+// }
+
+// function closeRightSideBar() {
+//     document.getElementById("rightOptionsSidebar").style.width = "0px";
+//     document.getElementById("rightOptionsButton").textContent = "<";
+//     document.getElementById("rightOptionsButton").style.right = "0px";
+// }
+
+function openRightSideBar() {
+    document.getElementById("rightOptionsSidebar").style.right = "0px";
+    document.getElementById("rightOptionsButton").textContent = ">";
+    document.getElementById("rightOptionsButton").style.right = "250px";
 }
 
-function closeSideBar() {
-    document.getElementById("optionsSidebar").style.width = "0px";
-    document.getElementById("optionsButton").textContent = "<";
-    document.getElementById("optionsButton").style.right = "0px";
+function closeRightSideBar() {
+    document.getElementById("rightOptionsSidebar").style.right = "-250px";
+    document.getElementById("rightOptionsButton").textContent = "<";
+    document.getElementById("rightOptionsButton").style.right = "0px";
 }
 
-function toggleSideBar() {
-    if (document.getElementById("optionsButton").textContent == "<") {
-        openSideBar();
+function toggleRightSideBar() {
+    if (document.getElementById("rightOptionsButton").textContent == "<") {
+        openRightSideBar();
     } else {
-        closeSideBar();
+        closeRightSideBar();
+    }
+}
+
+// function openLeftSideBar() {
+//     document.getElementById("leftOptionsSidebar").style.width = "250px";
+//     document.getElementById("leftOptionsButton").textContent = "<";
+//     document.getElementById("leftOptionsButton").style.left = "250px";
+// }
+
+// function closeLeftSideBar() {
+//     document.getElementById("leftOptionsSidebar").style.width = "0px";
+//     document.getElementById("leftOptionsButton").textContent = ">";
+//     document.getElementById("leftOptionsButton").style.left = "0px";
+// }
+
+function openLeftSideBar() {
+    document.getElementById("leftOptionsSidebar").style.left = "0px";
+    document.getElementById("leftOptionsButton").textContent = "<";
+    document.getElementById("leftOptionsButton").style.left = "250px";
+}
+
+function closeLeftSideBar() {
+    document.getElementById("leftOptionsSidebar").style.left = "-250px";
+    document.getElementById("leftOptionsButton").textContent = ">";
+    document.getElementById("leftOptionsButton").style.left = "0px";
+}
+
+function toggleLeftSideBar() {
+    if (document.getElementById("leftOptionsButton").textContent == ">") {
+        openLeftSideBar();
+    } else {
+        closeLeftSideBar();
     }
 }
 
@@ -694,6 +807,16 @@ function toggleCsys() {
 
 function toggleBase() {
     showPlane = !showPlane;
+}
+
+function toggleObject() {
+    // if (displayObject.includes(id) == true) {
+    //     displayObject.splice(displayObject.indexOf(id), 1)
+    // } else {
+    //     displayObject.push(id)
+    // }
+    console.log("id   " + this.id);
+    objects.shapes[this.id].display = !objects.shapes[this.id].display;
 }
 
 
