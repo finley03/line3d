@@ -1,4 +1,4 @@
-let build = "0.7.4";
+let build = "0.8";
 document.getElementById("title").innerHTML = "line3d " + build;
 
 function showcredits(){
@@ -39,11 +39,13 @@ class Objects {
                         name:"Cube",
                         display: true,
                         color: "#aaaaaa",
-                        position: [4,0,0],
+                        surfaceColor: "#333333",
+                        position: [3,0,0],
                         theta: [0,0,0],
                         rotateSpeed: [0.043,0.157,0.75],
                         points:[[1,1,1],[1,1,-1],[-1,1,1],[-1,1,-1],[1,-1,1],[1,-1,-1],[-1,-1,1],[-1,-1,-1]],
-                        instructions:[[0,1],[1,3],[3,2],[2,0],[4,5],[5,7],[7,6],[6,4],[0,4],[2,6],[1,5],[3,7]]
+                        instructions:[[0,1],[1,3],[3,2],[2,0],[4,5],[5,7],[7,6],[6,4],[0,4],[2,6],[1,5],[3,7]],
+                        surfaceData:[[0,1,3,2],[4,5,7,6],[0,1,5,4],[2,3,7,6],[0,4,6,2],[1,5,7,3]]
                     },
                     wf_cube: {
                         name:"Wireframe Cube",
@@ -53,17 +55,20 @@ class Objects {
                         theta: [0,0,0],
                         rotateSpeed: [0.043,0.157,0.75],
                         points:[[1,1,1],[1,1,-1],[-1,1,1],[-1,1,-1],[1,-1,1],[1,-1,-1],[-1,-1,1],[-1,-1,-1]],
-						instructions:[[0,1],[0,3],[1,3],[3,2],[1,4],[2,0],[4,5],[2,7],[5,7],[7,6],[2,4],[5,3],[6,5],[6,4],[0,4],[2,6],[1,5],[3,7]]
+                        instructions:[[0,1],[0,3],[1,3],[3,2],[1,4],[2,0],[4,5],[2,7],[5,7],[7,6],[2,4],[5,3],[6,5],[6,4],[0,4],[2,6],[1,5],[3,7]]
+                        //surfaceData:[[0,1,3,2],[4,5,7,6],[0,1,5,4],[2,3,7,6],[0,4,6,2],[1,5,7,3]]     hidden line is currently not available on this object. surface space partitioning is required.
                     },
                     sq_pyramid: {
                         name:"Pyramid",
                         display: false,
                         color: "#00aa00",
+                        surfaceColor: "#004400",
                         position: [0,2,-0.4],
                         theta: [0,0,0],
                         rotateSpeed: [-0.043,-0.157,-0.75],
                         points:[[1,1,-0.6],[1,-1,-0.6],[-1,-1,-0.6],[-1,1,-0.6],[0,0,0.8]],
-                        instructions:[[0,1],[1,2],[2,3],[3,0],[0,4],[1,4],[2,4],[3,4]]
+                        instructions:[[0,1],[1,2],[2,3],[3,0],[0,4],[1,4],[2,4],[3,4]],
+                        surfaceData:[[0,1,2,3],[0,1,4],[1,2,4],[2,3,4],[3,0,4]]
                     },
                     line: {
                         name:"Line",
@@ -120,21 +125,6 @@ class Objects {
 
     scaleObjects() {
         this.scale = Math.min(window.innerWidth, window.innerHeight) * 0.25;
-
-        for (let shape in this.shapes) {
-            for (let s = 0; s < (this.shapes[shape]["points"]).length; s++) {
-                for (let t = 0; t < (this.shapes[shape]["points"][0]).length; t++) {
-                    this.shapes[shape]["points"][s][t] *= this.scale;
-                }
-            }
-        }
-        for (let csysShape in this.csysShapes) {
-            for (let s = 0; s < (this.csysShapes[csysShape]["points"]).length; s++) {
-                for (let t = 0; t < (this.csysShapes[csysShape]["points"][0]).length; t++) {
-                    this.csysShapes[csysShape]["points"][s][t] *= this.scale;
-                }
-            }
-        }
     }
 
     // create buttons based on objects in class
@@ -292,8 +282,14 @@ leftoptionspanel = new leftOptionsPanel();
 
 
 let displayObject = ['base']; //['base','wf_cube','sq_pyramid','cube'];
+let displayStyle = 'wireframe' // 'wireframe', 'hidden-line', 'planar'
+let pointData = []; // [[xCoordinate, yCoordinate, zCoordinate], object]
+let lineData = []; // [[point0, point1], [intersects], color, object, display?(bool)]
+let planeData = []; // [[points], [intersects], color, object, display?]
+let shiftData = [];
+let lineIntersects = [];
 let focusObject = null
-let frameRate = 30;
+let frameRate = 60;
 let startCameraPosition = [15,0,0];
 let cameraDirection = [0,0,0];
 let planePosition = [-7,0,0]; // first value is perspective level, must be negative. smaller number = more perspective
@@ -309,10 +305,10 @@ let compoundMatrix = [[],[],[]];
 let cameraIntermediateMatrix = [[],[],[]];
 let cameraCompoundMatrix = [[],[],[]];
 let revolveMatrix = [[],[],[]];
-let transformedObject = [];//new Array(object.length); for (let n=0; n<objects.shapes["base"].points.length; n++) { transformedObject[n] = new Array(3); }
-let perspectiveObject = [];//new Array(object.length); for (let n=0; n<transformedObject.length; n++) { perspectiveObject[n] = new Array(3); }
-let csysPerspectiveObject = [];//new Array(object.length); for (let n=0; n<perspectiveObject.length; n++) { csysPerspectiveObject[n] = new Array(3); }
-let transformedPerspectiveObject = [];//new Array(object.length); for (let n=0; n<perspectiveObject.length; n++) { transformedPerspectiveObject[n] = new Array(3); }
+let transformedObject = [];
+let perspectiveObject = [];
+let csysPerspectiveObject = [];
+let transformedPerspectiveObject = [];
 let rotate = false;
 let revolve = false;
 let cameraPosition = []; for (v in startCameraPosition) {cameraPosition[v] = startCameraPosition[v]};
@@ -330,18 +326,35 @@ let csysInfo = [];
 let csysWidth = {csysX: 3,csysY: 3, csysZ: 3};
 let coordinateDisplacement = {csysX: 0,csysY: 0, csysZ: 0};
 let translating = false;
-let minDisplacement = 30;
+let minDisplacement = 30/objects.scale;
 let translateAxis = null;
 let csysVector = [];
 let mouseVector = [];
 let translateFactor = null;
+let detA = 0;
+let detB = 0;
+let detC = 0;
+let detD = 0;
+let Ax = 0;
+let Ay = 0;
+let Bx = 0;
+let By = 0;
+let Cx = 0;
+let Cy = 0;
+let Dx = 0;
+let Dy = 0;
+let breakPoints = [];
+let intersect = [];
+let sign = 0;
+let addLines = [];
+let hiddenLine = true;
+let detList = [];
+let fpError = false;
 
 
 rightoptionspanel.addCheckbox("Rotation", "rotationCheckBox", toggleRotation, false);
 rightoptionspanel.addCheckbox("Csys Display", "csysCheckbox", toggleCsys, false);
-//rightoptionspanel.addCheckbox("Base Plane", "baseplaneCheckbox", toggleBase, true);
-
-//leftoptionspanel.addCheckbox("Csys Display", "csysCheckbox", toggleCsys, false)
+rightoptionspanel.addCheckbox("Hidden Line (alpha)", "hiddenLine", toggleHidden, true);
 
 for (o in objects.shapes) {
     leftoptionspanel.addCheckbox(objects.shapes[o].name, o, toggleObject, objects.shapes[o].display)
@@ -417,7 +430,7 @@ canvas.addEventListener("mousemove", function(event) {
     if (objectTranslate == true && translating == false) {
         translateAxis = null
         for (s in csysInfo) {
-            coordinateDisplacement[s] = Math.abs(Math.sqrt(Math.pow((csysInfo[s][1][0]+(ctx.canvas.width/2))-currentMouseX,2)+Math.pow((-csysInfo[s][1][1]+(ctx.canvas.height/2))-currentMouseY,2)));
+            coordinateDisplacement[s] = Math.abs(Math.sqrt(Math.pow((csysInfo[s][1][0]+((ctx.canvas.width/2)/objects.scale))-(currentMouseX/objects.scale),2)+Math.pow((-csysInfo[s][1][1]+((ctx.canvas.height/2)/objects.scale))-(currentMouseY/objects.scale),2)));
             if (coordinateDisplacement[s] <= minDisplacement) {
                 minDisplacement = coordinateDisplacement[s]
                 translateAxis = s;
@@ -426,7 +439,7 @@ canvas.addEventListener("mousemove", function(event) {
         }
 
         csysWidth[translateAxis] = 5;
-        minDisplacement = 30;
+        minDisplacement = 30/objects.scale;
     }
 })
 
@@ -465,17 +478,46 @@ drawLoop();
 
 function drawLoop() {
     setTimeout(function() {
+
+        pointData = [];
+        lineData = [];
+        planeData = [];
+        lineIntersects = [];
         
         ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
         ctx.lineWidth = 1.5;
-        // if (showPlane == true) {
-        //     id = "base";
-        //     if (focusObject != id) {
-        //         object = objects.shapes[id].points;
-        //         objectInstructions = objects.shapes[id].instructions;
-        //         draw(object,objectInstructions,objects.shapes[id].color,id);
-        //     }
-        // }
+
+        for(id in objects.shapes) {
+            if (objects.shapes[id].display == true || id == focusObject) { //focusObject != id &&
+                if (focusObject != id) {
+                    ctx.lineWidth = 1.5
+                } else {
+                    ctx.lineWidth = 4
+                }
+                object = objects.shapes[id].points;
+                objectInstructions = objects.shapes[id].instructions;
+                surfaceData = objects.shapes[id].surfaceData;
+                draw(object,objectInstructions,surfaceData,objects.shapes[id].color,objects.shapes[id].surfaceColor,id);
+            }
+        }
+
+        if (hiddenLine) {hiddenElement();}
+
+        plot();
+
+
+        if (objectTranslate == true && focusObject != null) {
+            id = focusObject;
+            for(c in objects.csysShapes) {
+                center = false;
+                object = objects.csysShapes[c].points;
+                objectInstructions = objects.csysShapes[c].instructions;
+                ctx.lineWidth = csysWidth[c];
+                drawCsys(object,objectInstructions,objects.csysShapes[c].color,id,center,c);
+            }
+        }
+
+        ctx.lineWidth = 1.5;
         if (showCsys == true) {
             for(c in objects.csysShapes) {
                 id = null;
@@ -483,31 +525,6 @@ function drawLoop() {
                 object = objects.csysShapes[c].points;
                 objectInstructions = objects.csysShapes[c].instructions;
                 drawCsys(object,objectInstructions,objects.csysShapes[c].color,id,center,c);
-            }
-        }
-        for(id in objects.shapes) {
-        //for(let o=0; o<displayObject.length; o++) {
-            //id = displayObject[o];
-            if (focusObject != id && objects.shapes[id].display == true) {
-                object = objects.shapes[id].points;
-                objectInstructions = objects.shapes[id].instructions;
-                draw(object,objectInstructions,objects.shapes[id].color,id);
-            }
-        }
-        if (focusObject != null) {
-            id = focusObject;
-            object = objects.shapes[id].points;
-            objectInstructions = objects.shapes[id].instructions;
-            ctx.lineWidth = 4;
-            draw(object,objectInstructions,objects.shapes[id].color,id);
-            if (objectTranslate == true) {
-                for(c in objects.csysShapes) {
-                    center = false;
-                    object = objects.csysShapes[c].points;
-                    objectInstructions = objects.csysShapes[c].instructions;
-                    ctx.lineWidth = csysWidth[c];
-                    drawCsys(object,objectInstructions,objects.csysShapes[c].color,id,center,c);
-                }
             }
         }
 
@@ -518,13 +535,14 @@ function drawLoop() {
             translateObject();
         }
 
+
         drawLoop()
     }, (1000/frameRate));
 }
 
 // draw object on screen
 
-function draw(object,objectInstructions,color,id) {
+function draw(object,objectInstructions,surfaceData,color,surfaceColor,id) {
 
     let xTheta = objects.shapes[id].theta[0];
     let yTheta = objects.shapes[id].theta[1];
@@ -570,7 +588,7 @@ function draw(object,objectInstructions,color,id) {
     // translate objects
 
     for (let t=0; t<transformedObject.length; t++) {
-        transformedObject[t] = [transformedObject[t][0]+(objects.shapes[id].position[0]*objects.scale), transformedObject[t][1]+(objects.shapes[id].position[1]*objects.scale), transformedObject[t][2]+(objects.shapes[id].position[2]*objects.scale)]
+        transformedObject[t] = [transformedObject[t][0]+objects.shapes[id].position[0], transformedObject[t][1]+objects.shapes[id].position[1], transformedObject[t][2]+objects.shapes[id].position[2]];
     }
 
 
@@ -600,7 +618,7 @@ function draw(object,objectInstructions,color,id) {
     // translate for camera position
 
     for (let p=0; p<transformedObject.length; p++) {
-        csysPerspectiveObject[p] = [transformedObject[p][0]-(cameraPosition[0]*objects.scale), transformedObject[p][1]-(cameraPosition[1]*objects.scale), transformedObject[p][2]-(cameraPosition[2]*objects.scale)];
+        csysPerspectiveObject[p] = [transformedObject[p][0]-cameraPosition[0], transformedObject[p][1]-cameraPosition[1], transformedObject[p][2]-cameraPosition[2]];
     }
 
     // apply matrix transformation
@@ -613,24 +631,28 @@ function draw(object,objectInstructions,color,id) {
 
     // multiply final values to get display points
 
-    for (let q=0; q<transformedObject.length; q++) {
-        perspectiveObject[q] = [((planePosition[0]*objects.scale)/transformedPerspectiveObject[q][0])*transformedPerspectiveObject[q][1]+(planePosition[1]*objects.scale), ((planePosition[0]*objects.scale)/transformedPerspectiveObject[q][0])*transformedPerspectiveObject[q][2]+(planePosition[2]*objects.scale)];
+    for (let q=0; q<transformedObject.length; q++) {        
+        perspectiveObject[q] = [(planePosition[0]/transformedPerspectiveObject[q][0])*transformedPerspectiveObject[q][1]+planePosition[1], (planePosition[0]/transformedPerspectiveObject[q][0])*transformedPerspectiveObject[q][2]+planePosition[2]];
     }
 
-    // draw transformed object
+    // add to data matrices
 
-    ctx.strokeStyle = color;
-    ctx.beginPath();
 
-    let i=0
-    for (i=0; i<objectInstructions.length; i++) {
-        ctx.moveTo(perspectiveObject[objectInstructions[i][0]][0]+(ctx.canvas.width/2), -perspectiveObject[objectInstructions[i][0]][1]+(ctx.canvas.height/2));
-        ctx.lineTo(perspectiveObject[objectInstructions[i][1]][0]+(ctx.canvas.width/2), -perspectiveObject[objectInstructions[i][1]][1]+(ctx.canvas.height/2));
+    for (f in objectInstructions) {
+        lineData.push([[objectInstructions[f][0]+pointData.length,objectInstructions[f][1]+pointData.length],[],color,id,true]);
     }
 
-    ctx.stroke();
+    for (g in surfaceData) {
+        shiftData = new Array(surfaceData[g].length)
+        for (h in surfaceData[g]) {
+            shiftData[h] = surfaceData[g][h]+pointData.length
+        }
+        planeData.push([shiftData,[],surfaceColor,id,true])
+    }
 
-    // increment position counters
+    for (e in perspectiveObject) {
+        pointData.push([[perspectiveObject[e][0],perspectiveObject[e][1],transformedPerspectiveObject[e][0]],id]);
+    }
     
     if (rotate) {
         xTheta += xRotateSpeed;
@@ -670,7 +692,7 @@ function drawCsys(object,objectInstructions,color,id,center,csys) {
 
     if (center == false) {
         for (let t=0; t<object.length; t++) {
-            transformedObject[t] = [object[t][0]+(objects.shapes[id].position[0]*objects.scale), object[t][1]+(objects.shapes[id].position[1]*objects.scale), object[t][2]+(objects.shapes[id].position[2]*objects.scale)]
+            transformedObject[t] = [object[t][0]+objects.shapes[id].position[0], object[t][1]+objects.shapes[id].position[1], object[t][2]+objects.shapes[id].position[2]];
         }
     } else {
         for (v in object) { for (w in object){ transformedObject[v][w] = object[v][w]; }};
@@ -697,7 +719,7 @@ function drawCsys(object,objectInstructions,color,id,center,csys) {
     }
 
     for (let p=0; p<transformedObject.length; p++) {
-        csysPerspectiveObject[p] = [transformedObject[p][0]-(cameraPosition[0]*objects.scale), transformedObject[p][1]-(cameraPosition[1]*objects.scale), transformedObject[p][2]-(cameraPosition[2]*objects.scale)];
+        csysPerspectiveObject[p] = [transformedObject[p][0]-cameraPosition[0], transformedObject[p][1]-cameraPosition[1], transformedObject[p][2]-cameraPosition[2]];
     }
 
     for (let j=0; j<csysPerspectiveObject.length; j++) {
@@ -707,7 +729,7 @@ function drawCsys(object,objectInstructions,color,id,center,csys) {
     }
 
     for (let q=0; q<transformedObject.length; q++) {
-        perspectiveObject[q] = [((planePosition[0]*objects.scale)/transformedPerspectiveObject[q][0])*transformedPerspectiveObject[q][1]+(planePosition[1]*objects.scale), ((planePosition[0]*objects.scale)/transformedPerspectiveObject[q][0])*transformedPerspectiveObject[q][2]+(planePosition[2]*objects.scale)];
+        perspectiveObject[q] = [(planePosition[0]/transformedPerspectiveObject[q][0])*transformedPerspectiveObject[q][1]+planePosition[1], (planePosition[0]/transformedPerspectiveObject[q][0])*transformedPerspectiveObject[q][2]+planePosition[2]];
     }
 
     // draw object
@@ -717,8 +739,8 @@ function drawCsys(object,objectInstructions,color,id,center,csys) {
 
     let i=0
     for (i=0; i<objectInstructions.length; i++) {
-        ctx.moveTo(perspectiveObject[objectInstructions[i][0]][0]+(ctx.canvas.width/2), -perspectiveObject[objectInstructions[i][0]][1]+(ctx.canvas.height/2));
-        ctx.lineTo(perspectiveObject[objectInstructions[i][1]][0]+(ctx.canvas.width/2), -perspectiveObject[objectInstructions[i][1]][1]+(ctx.canvas.height/2));
+        ctx.moveTo((perspectiveObject[objectInstructions[i][0]][0]*objects.scale)+(ctx.canvas.width/2), (-perspectiveObject[objectInstructions[i][0]][1]*objects.scale)+(ctx.canvas.height/2));
+        ctx.lineTo((perspectiveObject[objectInstructions[i][1]][0]*objects.scale)+(ctx.canvas.width/2), (-perspectiveObject[objectInstructions[i][1]][1]*objects.scale)+(ctx.canvas.height/2));
     }
 
     if (center == false) {
@@ -728,6 +750,201 @@ function drawCsys(object,objectInstructions,color,id,center,csys) {
     ctx.stroke();
 
 }
+
+
+
+
+//----------HIDDEN ELEMENT DETECTION AND CORRECTION---------//
+
+
+
+
+function hiddenElement() {
+
+    // detect line intersection
+
+    for (a in lineData) {
+        for (b in lineData) {
+            if ((a == b)) { continue; } //  || (lineIntersects.includes([b,a]))
+            
+            Ax = pointData[lineData[a][0][0]][0][0];
+            Ay = pointData[lineData[a][0][0]][0][1];
+            Bx = pointData[lineData[a][0][1]][0][0];
+            By = pointData[lineData[a][0][1]][0][1];
+            Cx = pointData[lineData[b][0][0]][0][0];
+            Cy = pointData[lineData[b][0][0]][0][1];
+            Dx = pointData[lineData[b][0][1]][0][0];
+            Dy = pointData[lineData[b][0][1]][0][1];
+
+            detA = ((Ax-Cx)*(By-Cy))-((Ay-Cy)*(Bx-Cx));
+            detB = ((Ax-Dx)*(By-Dy))-((Ay-Dy)*(Bx-Dx));
+            detC = ((Cx-Ax)*(Dy-Ay))-((Cy-Ay)*(Dx-Ax));
+            detD = ((Cx-Bx)*(Dy-By))-((Cy-By)*(Dx-Bx));
+
+            if ((!!(detA+Math.abs(detA)) == !(detB+Math.abs(detB))) && (!!(detC+Math.abs(detC)) == !(detD+Math.abs(detD))) && (detA != 0) && (detB != 0) && (detC != 0) && (detD != 0)) {
+                lineIntersects.push([a,b]);
+            }
+
+
+        }
+    }
+
+    // find line intersections
+
+    for (i in lineIntersects) {
+        Ax = pointData[lineData[lineIntersects[i][0]][0][0]][0][0];  //pointData[lineData[lineIntersects[#iteration][#line]][0][#linepoint]][0][coordinate];
+        Ay = pointData[lineData[lineIntersects[i][0]][0][0]][0][1];
+        Bx = pointData[lineData[lineIntersects[i][0]][0][1]][0][0];
+        By = pointData[lineData[lineIntersects[i][0]][0][1]][0][1];
+        Cx = pointData[lineData[lineIntersects[i][1]][0][0]][0][0];
+        Cy = pointData[lineData[lineIntersects[i][1]][0][0]][0][1];
+        Dx = pointData[lineData[lineIntersects[i][1]][0][1]][0][0];
+        Dy = pointData[lineData[lineIntersects[i][1]][0][1]][0][1];
+
+        intersect = [(((((Ax*By)-(Ay*Bx))*((Cx)-(Dx)))-(((Ax)-(Bx))*((Cx*Dy)-(Cy*Dx))))/((((Ax)-(Bx))*((Cy)-(Dy)))-(((Ay)-(By))*((Cx)-(Dx))))), (((((Ax*By)-(Ay*Bx))*((Cy)-(Dy)))-(((Ay)-(By))*((Cx*Dy)-(Cy*Dx))))/((((Ax)-(Bx))*((Cy)-(Dy)))-(((Ay)-(By))*((Cx)-(Dx)))))];
+        intersectZ = (Math.sqrt(Math.pow(intersect[0]-pointData[lineData[lineIntersects[i][0]][0][0]][0][0],2)+Math.pow(intersect[1]-pointData[lineData[lineIntersects[i][0]][0][0]][0][1],2))/Math.sqrt(Math.pow(pointData[lineData[lineIntersects[i][0]][0][1]][0][0]-pointData[lineData[lineIntersects[i][0]][0][0]][0][0],2)+Math.pow(pointData[lineData[lineIntersects[i][0]][0][1]][0][1]-pointData[lineData[lineIntersects[i][0]][0][0]][0][1],2)) * (pointData[lineData[lineIntersects[i][0]][0][1]][0][2]-pointData[lineData[lineIntersects[i][0]][0][0]][0][2])) + pointData[lineData[lineIntersects[i][0]][0][0]][0][2];
+        lineData[lineIntersects[i][0]][1].push([intersect[0],intersect[1],intersectZ]);
+    }
+
+    // order line divisions
+
+    for (l in lineData) {
+        if (lineData[l][1].length == 0) {
+            continue;
+        } else {
+            for (n in lineData[l][1]) {
+                lineData[l][1].sort(function(a,b) {return (a[0]-b[0])+(a[1]-b[1]);}); // potential for problems
+                sign = (pointData[lineData[l][0][1]][0][0]-pointData[lineData[l][0][0]][0][0])+(pointData[lineData[l][0][1]][0][1]-pointData[lineData[l][0][0]][0][1]); // potential for same problems
+                if (!(sign+Math.abs(sign))) {
+                    lineData[l][1].reverse();
+                }
+            }
+        }
+    }
+
+    // divide lines
+
+    addLines = [];
+
+    for (m in lineData) {
+        if (lineData[m][1].length == 0) {
+            continue;
+        } else {
+            l = pointData.length;
+            for (n in lineData[m][1]) {
+                pointData.push([lineData[m][1][n], lineData[m][3]]);
+            }
+
+            if (lineData[m][1].length >= 2) {
+                for (o=0; o<lineData[m][1].length-1; o++) {
+                    addLines.push([[l+o,l+o+1],[],lineData[m][2],lineData[m][3],true]);
+                }
+            }
+
+            addLines.push([[lineData[m][0][0],l],[],lineData[m][2],lineData[m][3],true]);
+            addLines.push([[pointData.length-1,lineData[m][0][1]],[],lineData[m][2],lineData[m][3],true]);
+            lineData[m][4] = false;
+
+        }
+    }
+
+    if (addLines.length > 0) {for (z in addLines) {lineData.push(addLines[z]);}}
+
+    // set mean point of lines and polygons NOT BARYCENTER
+
+    for (y in lineData) {
+        if (lineData[y][4] == true) {
+            lineData[y][1] = [(pointData[lineData[y][0][0]][0][0]+pointData[lineData[y][0][1]][0][0])/2,(pointData[lineData[y][0][0]][0][1]+pointData[lineData[y][0][1]][0][1])/2,(pointData[lineData[y][0][0]][0][2]+pointData[lineData[y][0][1]][0][2])/2];
+        } // is NOT barycenter, just mean of points
+    }
+
+    for (z in planeData) {
+        if (planeData[z][4] == true) {
+            let numbers = [[],[],[]];
+            for (w in planeData[z][0]) {
+                numbers[0].push(pointData[planeData[z][0][w]][0][0]);
+                numbers[1].push(pointData[planeData[z][0][w]][0][1]);
+                numbers[2].push(pointData[planeData[z][0][w]][0][2]);
+
+            }
+            planeData[z][1] = [mean(numbers[0]), mean(numbers[1]), mean(numbers[2])];
+        }
+    }
+
+    // check if lines are obscured by polygons
+
+    for (q in lineData) {
+        if (lineData[q][4] == true) {
+            for (r in planeData) {
+                if (lineData[q][1][2] < planeData[r][1][2]) {
+                    detList = [];
+
+                    Cx = lineData[q][1][0];
+                    Cy = lineData[q][1][1];
+
+                    for (t=0; t<planeData[r][0].length-1; t++) {
+                        Ax = pointData[planeData[r][0][t]][0][0];
+                        Ay = pointData[planeData[r][0][t]][0][1];
+                        Bx = pointData[planeData[r][0][t+1]][0][0];
+                        By = pointData[planeData[r][0][t+1]][0][1];
+
+                        detA = ((Ax-Cx)*(By-Cy))-((Bx-Cx)*(Ay-Cy));
+
+                        detList.push(detA);
+                    }
+
+                    Ax = pointData[planeData[r][0][planeData[r][0].length-1]][0][0];
+                    Ay = pointData[planeData[r][0][planeData[r][0].length-1]][0][1];
+                    Bx = pointData[planeData[r][0][0]][0][0];
+                    By = pointData[planeData[r][0][0]][0][1];
+                    
+                    detA = ((Ax-Cx)*(By-Cy))-((Bx-Cx)*(Ay-Cy));
+
+                    detList.push(detA);
+
+                    fpError = false;
+                    for (f in detList) {
+                        if (Math.abs(detList[f]) < 0.0000000000001) { // 1 in 10 trillion
+                            fpError = true;
+                            break;
+                        }
+                    }
+
+                    if (!fpError) {
+                        if (detList.every(function(val){return Math.sign(val) == Math.sign(detList[0])})) {
+                            lineData[q][4] = false;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+
+
+
+//----------PLOT ON CANVAS----------//
+
+
+
+
+
+function plot() {
+    for (i=0; i<lineData.length; i++) {
+        if (lineData[i][4] == true) {
+            ctx.beginPath();
+            ctx.strokeStyle = lineData[i][2];
+            if (lineData[i][3] != focusObject) {ctx.lineWidth = 1.5}
+            else {ctx.lineWidth = 4;}
+            ctx.moveTo((pointData[lineData[i][0][0]][0][0]*objects.scale)+(ctx.canvas.width/2), (-pointData[lineData[i][0][0]][0][1]*objects.scale)+(ctx.canvas.height/2));
+            ctx.lineTo((pointData[lineData[i][0][1]][0][0]*objects.scale)+(ctx.canvas.width/2), (-pointData[lineData[i][0][1]][0][1]*objects.scale)+(ctx.canvas.height/2));
+            ctx.stroke();
+        }
+    }
+}
+
 
 
 
@@ -751,18 +968,6 @@ if (window.location.hash.substr(1)) {
     setObjectType(window.location.hash.substr(1))
 }
 
-// function openRightSideBar() {
-//     document.getElementById("rightOptionsSidebar").style.width = "250px";
-//     document.getElementById("rightOptionsButton").textContent = ">";
-//     document.getElementById("rightOptionsButton").style.right = "250px";
-// }
-
-// function closeRightSideBar() {
-//     document.getElementById("rightOptionsSidebar").style.width = "0px";
-//     document.getElementById("rightOptionsButton").textContent = "<";
-//     document.getElementById("rightOptionsButton").style.right = "0px";
-// }
-
 function openRightSideBar() {
     document.getElementById("rightOptionsSidebar").style.right = "0px";
     document.getElementById("rightOptionsButton").textContent = ">";
@@ -782,18 +987,6 @@ function toggleRightSideBar() {
         closeRightSideBar();
     }
 }
-
-// function openLeftSideBar() {
-//     document.getElementById("leftOptionsSidebar").style.width = "250px";
-//     document.getElementById("leftOptionsButton").textContent = "<";
-//     document.getElementById("leftOptionsButton").style.left = "250px";
-// }
-
-// function closeLeftSideBar() {
-//     document.getElementById("leftOptionsSidebar").style.width = "0px";
-//     document.getElementById("leftOptionsButton").textContent = ">";
-//     document.getElementById("leftOptionsButton").style.left = "0px";
-// }
 
 function openLeftSideBar() {
     document.getElementById("leftOptionsSidebar").style.left = "0px";
@@ -828,14 +1021,21 @@ function toggleBase() {
 }
 
 function toggleObject() {
-    // if (displayObject.includes(id) == true) {
-    //     displayObject.splice(displayObject.indexOf(id), 1)
-    // } else {
-    //     displayObject.push(id)
-    // }
     console.log("id   " + this.id);
     objects.shapes[this.id].display = !objects.shapes[this.id].display;
 }
+
+function toggleHidden() {
+    hiddenLine = !hiddenLine;
+}
+
+function mean(numbers) {
+    let sum = 0, i;
+    for (i in numbers) {
+        sum += numbers[i];
+    }
+    return sum/numbers.length;
+} 
 
 
 
@@ -879,8 +1079,8 @@ function revolves() {
 
 
 function translateObject() {
-    deltaX = currentMouseX - mouseX;
-    deltaY = mouseY - currentMouseY;
+    deltaX = (currentMouseX - mouseX)/objects.scale;
+    deltaY = (mouseY - currentMouseY)/objects.scale;
     mouseX = currentMouseX;
     mouseY = currentMouseY;
 

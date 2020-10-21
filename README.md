@@ -2,7 +2,7 @@
 
 ## Simple web based 3d engine
 
-Displays objects as wireframe (currently)
+Displays objects as wireframe and also hidden line (early, quite buggy)
 
 Right now it's somewhat basic but the featureset is quickly building.
 
@@ -18,6 +18,8 @@ You can also add extra objects to display. Examples in line3d.js
 
 * scroll to zoom
 * middle click + drag to revolve
+* display menu on the right
+* object menu on the left
 * select objects with buttons at the botton
 * press 't' to enter translate mode
 
@@ -31,20 +33,20 @@ You can also add extra objects to display. Examples in line3d.js
 * accurate perspective
 * multiple independent objects
 * coordinate system display
-* base plane
+* hidden line (finally)
 
 ### In the works
 
-* .obj file support
-* more complete ui
+* .obj file support (alpha)
+* more complete ui (ongoing)
+* full hidden line
+* surface support
 
 ### Coming (probably)
 
-* hide/fade lines on back side of object
-* shaded polygons
 * animation features
 * orbital mechanics
 
 more if I have the time
 
-Version 0.7.4
+Version 0.8

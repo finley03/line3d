@@ -2,6 +2,7 @@ Started life as a joke in a computer science class, actually turned out to be a 
 
 Initially you would enter parameters for the object, and this would be transformed by some matricies then overwritten. (relative position)
 I quickly realised the multiplying floating point errors would make it unusable, so I rewrote much of it to use absolute position relative to the center of the canvas.
+Now early hidden line support is available in the right menu. It has many issues, and needs to be worked on. The max framerate also drops significantly.
 
 Perspective is NOW accurate.
 Now has multi object support.

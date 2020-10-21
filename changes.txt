@@ -1,6 +1,6 @@
-Initial repo created (07/10/2020)
-Merged pull request from HarriXS that added buttons to switch between objects (with heavy modification) (08/10/2020)
-Merged pull request from HarriXS that added dynamic window resizing support (with light modification) (08/10/2020)
+Initial repo created (07/10/2020) v0.1
+Merged pull request from HarriXS that added buttons to switch between objects (with heavy modification) (08/10/2020) v0.2
+Merged pull request from HarriXS that added dynamic window resizing support (with light modification) (08/10/2020) v0.3
 Merged pull request from electroplankton that added minor features and reworked some code (with light modification) (09/10/2020) v0.4
 Quick css error fix (09/10/2020) v0.4.1
 Changed 3d projection code to enable accurate perspective. also enables camera position control (10/10/2020) v0.5
@@ -12,3 +12,4 @@ Added mouse controls (scroll to zoom, middle click & drag to revolve) and code f
 Added object selection and the ability to translate objects by dragging the csys that appears in the center (16/10/2020) v0.7.2
 Minor changes to object translation. fixed so now only one csys axis can highlight at once (16/10/2020) v0.7.3
 Added second menu to select which objects appear (17/10/2020) v0.7.4
+Added first hidden line support & reworked some engine code (21/10/2020) v0.8
