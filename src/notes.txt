@@ -10,6 +10,8 @@ Both objects and camera now have 6 degrees of freedom
 Basic options menus being worked on.
 mouse controls now enabled
 
+I have now discovered the serious issues with setTimeout(). As a result, anyone wishing to run the program over 60fps will encounter some serious bottlenecks.
+
 Code contributors:
 HarriXS
 electroplankton

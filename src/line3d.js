@@ -1,4 +1,4 @@
-let build = "0.8";
+let build = "0.8.1";
 document.getElementById("title").innerHTML = "line3d " + build;
 
 function showcredits(){
@@ -350,6 +350,13 @@ let addLines = [];
 let hiddenLine = true;
 let detList = [];
 let fpError = false;
+let time0 = 0;
+let time1 = 0;
+let frameTimeArray = [];
+let iter = 0;
+let timeout = 0;
+let renderTime = 0;
+let delay = 0;
 
 
 rightoptionspanel.addCheckbox("Rotation", "rotationCheckBox", toggleRotation, false);
@@ -364,6 +371,10 @@ for (o in objects.shapes) {
 
 let canvas = document.getElementById("object");
 let ctx = canvas.getContext("2d");
+
+let renderTimeMonitor = document.getElementById("renderTime");
+let frameRateMonitor = document.getElementById("frameRate");
+let timeoutMonitor = document.getElementById("timeout");
 
 // setup event listeners
 
@@ -475,9 +486,15 @@ setCanvas();
 
 
 drawLoop();
+monitor();
 
 function drawLoop() {
     setTimeout(function() {
+
+        timeout = performance.now() - time1;
+        time0 = performance.now();
+
+        frameTimeArray.push(renderTime + timeout);
 
         pointData = [];
         lineData = [];
@@ -535,9 +552,29 @@ function drawLoop() {
             translateObject();
         }
 
+        iter++;
 
-        drawLoop()
-    }, (1000/frameRate));
+        renderTime = performance.now() - time0;
+
+        if ((renderTime + 4.5) < (1000/frameRate)) {
+            delay = (1000/frameRate) - (renderTime)
+        } else {
+            delay = 0;
+        }
+
+        time1 = performance.now();
+
+        drawLoop();
+    }, (delay));
+}
+
+function monitor() {
+    setTimeout(function() {
+        renderTimeMonitor.innerHTML = "RENDERTIME: " + renderTime.toPrecision(4) + "ms";
+        timeoutMonitor.innerHTML = "TIMEOUT: " + timeout.toPrecision(4) + "ms";
+        if (frameTimeArray.length > 0) {frameRateMonitor.innerHTML = "FRAMERATE: " + (1000/(mean(frameTimeArray))).toPrecision(4);frameTimeArray = [];}
+        monitor();
+    }, (996));
 }
 
 // draw object on screen
@@ -653,6 +690,10 @@ function draw(object,objectInstructions,surfaceData,color,surfaceColor,id) {
     for (e in perspectiveObject) {
         pointData.push([[perspectiveObject[e][0],perspectiveObject[e][1],transformedPerspectiveObject[e][0]],id]);
     }
+
+    // for (h in lineData) {
+    //     if (pointData[lineData[h][0][0]][0][2] >= -1 || pointData[lineData[h][0][1]][0][2] >= -1) {lineData[h][4] = false;}
+    // }
     
     if (rotate) {
         xTheta += xRotateSpeed;
