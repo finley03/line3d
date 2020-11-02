@@ -1,4 +1,4 @@
-let build = "0.8.1";
+let build = "0.8.2";
 document.getElementById("title").innerHTML = "line3d " + build;
 
 function showcredits(){
@@ -960,6 +960,8 @@ function hiddenElement() {
             }
         }
     }
+
+    lineData.sort(function(a,b) {return a[1][2]-b[1][2];}); // sorts list so that lines are drawn back to front
 }
 
 

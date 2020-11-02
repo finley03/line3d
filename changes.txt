@@ -14,3 +14,4 @@ Minor changes to object translation. fixed so now only one csys axis can highlig
 Added second menu to select which objects appear (17/10/2020) v0.7.4
 Added first hidden line support & reworked some engine code (21/10/2020) v0.8
 Added framerate & render time & timeout monitor (22/10/2020) v0.8.1 linecount:1548
+Minor engine change, now draws lines back to front (2/11/2020) v0.8.2 linecount:1550
